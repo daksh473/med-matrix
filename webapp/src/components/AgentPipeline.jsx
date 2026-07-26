@@ -3,29 +3,14 @@ import AgentCard from './AgentCard';
 import PayloadModal from './PayloadModal';
 import StatCards from './StatCards';
 import TelemetryChart from './TelemetryChart';
-import { Search, RotateCcw, CheckCircle2, Sparkles, Clock } from 'lucide-react';
+import { Search, RotateCcw, CheckCircle2, Sparkles, Clock, Bug, ChevronDown, ChevronUp } from 'lucide-react';
 
 const AGENTS = [
-  {
-    id: 'genolens', step: 1, badge: 'Pharmacogenomics', title: 'GenoLens Agent',
-    description: 'Analyzes patient genetic variant markers to evaluate CYP enzyme clearance rates, metabolism phenotypes, and interaction risks.',
-  },
-  {
-    id: 'pulseiq', step: 2, badge: 'Continuous Telemetry', title: 'PulseIQ Agent',
-    description: 'Processes 60-day wearable dataset (heart rate, SpO₂, sleep, steps) comparing baseline vs post-intervention phases.',
-  },
-  {
-    id: 'synthai', step: 3, badge: 'Information Commons', title: 'SynthAI Agent',
-    description: 'Fuses genomic clearance defects, telemetry trends, clinical symptoms, and exposome data into a multi-layer profile.',
-  },
-  {
-    id: 'pharmai', step: 4, badge: 'N-of-1 Dosing', title: 'PharmAI Agent',
-    description: 'Selects optimal drug and dosage regimen that bypasses genomic clearance defects while maximizing therapeutic efficacy.',
-  },
-  {
-    id: 'alertai', step: 5, badge: 'Safety Guardrails', title: 'AlertAI Agent',
-    description: 'Establishes continuous telemetry safety thresholds, adverse event triggers, and follow-up schedules.',
-  },
+  { id: 'genolens', step: 1, badge: 'Pharmacogenomics', title: 'GenoLens Agent', description: 'Analyzes patient genetic variant markers to evaluate CYP enzyme clearance rates, metabolism phenotypes, and interaction risks.' },
+  { id: 'pulseiq', step: 2, badge: 'Continuous Telemetry', title: 'PulseIQ Agent', description: 'Processes 60-day wearable dataset (heart rate, SpO₂, sleep, steps) comparing baseline vs post-intervention phases.' },
+  { id: 'synthai', step: 3, badge: 'Information Commons', title: 'SynthAI Agent', description: 'Fuses genomic clearance defects, telemetry trends, clinical symptoms, and exposome data into a multi-layer profile.' },
+  { id: 'pharmai', step: 4, badge: 'N-of-1 Dosing', title: 'PharmAI Agent', description: 'Selects optimal drug and dosage regimen that bypasses genomic clearance defects while maximizing therapeutic efficacy.' },
+  { id: 'alertai', step: 5, badge: 'Safety Guardrails', title: 'AlertAI Agent', description: 'Establishes continuous telemetry safety thresholds, adverse event triggers, and follow-up schedules.' },
 ];
 
 const THINKING_LOGS = {
@@ -41,20 +26,20 @@ export default function AgentPipeline({ patientInfo, timelineData, onComplete, o
     genolens: 'waiting', pulseiq: 'waiting', synthai: 'waiting', pharmai: 'waiting', alertai: 'waiting',
   });
   const [agentOutputs, setAgentOutputs] = useState({});
+  const [agentDebug, setAgentDebug] = useState({});   // { agentId: { systemPrompt, userPrompt, mode } }
   const [thinkingLogs, setThinkingLogs] = useState({});
   const [activeModal, setActiveModal] = useState(null);
   const [isPipelineRunning, setIsPipelineRunning] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
 
-  // Propagate state changes up
   useEffect(() => { onStateChange?.(agentStates, agentOutputs); }, [agentStates, agentOutputs]);
-
   useEffect(() => { runPipeline(); }, []);
 
   const runPipeline = async () => {
     setIsPipelineRunning(true);
-    const freshStates = { genolens: 'waiting', pulseiq: 'waiting', synthai: 'waiting', pharmai: 'waiting', alertai: 'waiting' };
-    setAgentStates(freshStates);
+    setAgentStates({ genolens: 'waiting', pulseiq: 'waiting', synthai: 'waiting', pharmai: 'waiting', alertai: 'waiting' });
     setAgentOutputs({});
+    setAgentDebug({});
     const outputs = {};
 
     for (let i = 0; i < AGENTS.length; i++) {
@@ -78,6 +63,10 @@ export default function AgentPipeline({ patientInfo, timelineData, onComplete, o
           outputs[agent.id] = data.data;
           setAgentOutputs(prev => ({ ...prev, [agent.id]: data.data }));
           setAgentStates(prev => ({ ...prev, [agent.id]: 'complete' }));
+          // Store debug info from server response
+          if (data.debug) {
+            setAgentDebug(prev => ({ ...prev, [agent.id]: { ...data.debug, mode: data.mode } }));
+          }
         } else {
           setAgentStates(prev => ({ ...prev, [agent.id]: 'error' }));
           setIsPipelineRunning(false);
@@ -97,22 +86,17 @@ export default function AgentPipeline({ patientInfo, timelineData, onComplete, o
   const completedCount = Object.values(agentStates).filter(s => s === 'complete').length;
   const isAllComplete = completedCount === 5;
 
-  // Current time display
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Top Bar: Search + Time Badge */}
+      {/* Top Bar */}
       <div className="flex items-center gap-4">
         <div className="flex-1 relative">
           <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search agents, metrics, or patient data..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[var(--bg-input)] border border-[var(--border-light)] text-sm text-[var(--text-dark)] focus:outline-none focus:border-[var(--indigo)] focus:ring-2 focus:ring-blue-100 transition-all"
-          />
+          <input type="text" placeholder="Search agents, metrics, or patient data..." className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[var(--bg-input)] border border-[var(--border-light)] text-sm text-[var(--text-dark)] focus:outline-none focus:border-[var(--indigo)] focus:ring-2 focus:ring-blue-100 transition-all" />
         </div>
         <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--bg-input)] border border-[var(--border-light)] text-xs font-medium text-[var(--text-secondary)]">
           <Clock className="w-3.5 h-3.5 text-[var(--indigo)]" />
@@ -120,20 +104,24 @@ export default function AgentPipeline({ patientInfo, timelineData, onComplete, o
           <span className="text-[var(--text-faint)]">|</span>
           <span>{dateStr}</span>
         </div>
-        <button
-          onClick={runPipeline}
-          disabled={isPipelineRunning}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--bg-input)] border border-[var(--border-light)] hover:border-[var(--border-medium)] text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--indigo)] disabled:opacity-50 transition-colors"
-        >
+        <button onClick={() => setShowDebug(d => !d)} className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-semibold transition-colors ${showDebug ? 'bg-amber-50 border-amber-300 text-amber-700' : 'bg-[var(--bg-input)] border-[var(--border-light)] text-[var(--text-muted)] hover:text-amber-600'}`}>
+          <Bug className="w-3.5 h-3.5" /> Debug
+        </button>
+        <button onClick={runPipeline} disabled={isPipelineRunning} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--bg-input)] border border-[var(--border-light)] hover:border-[var(--border-medium)] text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--indigo)] disabled:opacity-50 transition-colors">
           <RotateCcw className="w-3.5 h-3.5" /> Re-run
         </button>
       </div>
 
-      {/* 3 Stat Cards */}
+      {/* Stat Cards */}
       <StatCards pipelineOutputs={agentOutputs} />
 
-      {/* 2 Chart Cards */}
+      {/* Chart Cards */}
       <TelemetryChart timelineData={timelineData} />
+
+      {/* Debug Panel (collapsible) */}
+      {showDebug && Object.keys(agentDebug).length > 0 && (
+        <DebugPanel agentDebug={agentDebug} />
+      )}
 
       {/* Pipeline Title */}
       <div className="flex items-center justify-between pt-2">
@@ -151,7 +139,7 @@ export default function AgentPipeline({ patientInfo, timelineData, onComplete, o
         )}
       </div>
 
-      {/* Vertical Agent Pipeline */}
+      {/* Vertical Pipeline */}
       <div className="pt-1">
         {AGENTS.map((agent, idx) => (
           <AgentCard
@@ -167,14 +155,51 @@ export default function AgentPipeline({ patientInfo, timelineData, onComplete, o
         ))}
       </div>
 
-      {/* JSON Modal */}
       {activeModal && (
-        <PayloadModal
-          agentName={activeModal.title}
-          payload={activeModal.payload}
-          onClose={() => setActiveModal(null)}
-        />
+        <PayloadModal agentName={activeModal.title} payload={activeModal.payload} onClose={() => setActiveModal(null)} />
       )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Collapsible Debug Panel
+   ───────────────────────────────────────────── */
+function DebugPanel({ agentDebug }) {
+  const [expanded, setExpanded] = useState({});
+  const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  const agentNames = { genolens: 'GenoLens', pulseiq: 'PulseIQ', synthai: 'SynthAI', pharmai: 'PharmAI', alertai: 'AlertAI' };
+
+  return (
+    <div className="content-card border-2 border-amber-300 bg-amber-50/50">
+      <div className="flex items-center gap-2 pb-3 mb-3 border-b border-amber-200">
+        <Bug className="w-4 h-4 text-amber-600" />
+        <h3 className="text-sm font-bold text-amber-800">Debug: Exact Prompts Sent Per Agent</h3>
+        <span className="text-[10px] font-mono text-amber-500 ml-auto">Verify different patients → different prompts</span>
+      </div>
+      <div className="space-y-2">
+        {Object.entries(agentDebug).map(([agentId, dbg]) => (
+          <div key={agentId} className="rounded-xl border border-amber-200 bg-white overflow-hidden">
+            <button onClick={() => toggle(agentId)} className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-semibold text-amber-800 hover:bg-amber-50 transition-colors">
+              <span>{agentNames[agentId] || agentId} — <span className="font-mono text-[10px] text-amber-500">mode: {dbg.mode}</span></span>
+              {expanded[agentId] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            {expanded[agentId] && (
+              <div className="px-4 pb-4 space-y-3">
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-gray-500 uppercase block mb-1">System Prompt:</span>
+                  <pre className="text-[11px] text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200 whitespace-pre-wrap overflow-x-auto max-h-[150px] overflow-y-auto">{dbg.systemPrompt}</pre>
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-amber-700 uppercase block mb-1">User Prompt (the actual text sent):</span>
+                  <pre className="text-[11px] text-gray-700 bg-amber-50 p-3 rounded-lg border border-amber-200 whitespace-pre-wrap overflow-x-auto max-h-[300px] overflow-y-auto">{dbg.userPrompt}</pre>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
