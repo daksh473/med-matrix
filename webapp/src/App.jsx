@@ -4,31 +4,36 @@ import RightPanel from './components/RightPanel';
 import IntakeForm from './components/IntakeForm';
 import AgentPipeline from './components/AgentPipeline';
 import FinalDashboard from './components/FinalDashboard';
-import { Activity, RefreshCw } from 'lucide-react';
+import { Activity, RefreshCw, Database } from 'lucide-react';
 import defaultTimelineData from './data/patient_timeline.json';
 
 export default function App() {
   const [screen, setScreen] = useState('intake');
   const [patientInfo, setPatientInfo] = useState(null);
   const [timelineData, setTimelineData] = useState(defaultTimelineData);
+  const [assignedSubject, setAssignedSubject] = useState(null);
   const [pipelineOutputs, setPipelineOutputs] = useState(null);
   const [agentStates, setAgentStates] = useState({});
 
-  // Try loading timeline from server
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch('/api/timeline');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) setTimelineData(data);
-        }
-      } catch { /* use embedded data */ }
-    })();
-  }, []);
-
-  const handleIntakeSubmit = (info) => {
+  const handleIntakeSubmit = async (info) => {
     setPatientInfo(info);
+    
+    // Request dynamic patient-assigned timeline from server
+    try {
+      const res = await fetch('/api/generate-timeline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientInfo: info }),
+      });
+      const data = await res.json();
+      if (data?.success && Array.isArray(data.timeline)) {
+        setTimelineData(data.timeline);
+        setAssignedSubject(data.assignedSubject);
+      }
+    } catch (err) {
+      console.warn('Fallback to standard timeline:', err.message);
+    }
+
     setScreen('pipeline');
   };
 
@@ -49,6 +54,7 @@ export default function App() {
     setPatientInfo(null);
     setPipelineOutputs(null);
     setAgentStates({});
+    setAssignedSubject(null);
   };
 
   const confidenceValue = pipelineOutputs?.pharmai?.confidence_level || null;
@@ -98,6 +104,13 @@ export default function App() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-3">
+            {assignedSubject && (
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[var(--indigo)] text-xs font-mono font-semibold">
+                <Database className="w-3.5 h-3.5" />
+                <span>Seed: {assignedSubject.display_name}</span>
+              </div>
+            )}
+
             {screen !== 'intake' && (
               <button onClick={handleReset} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-dark)] font-medium transition-colors">
                 <RefreshCw className="w-3.5 h-3.5" /> Reset
@@ -133,6 +146,7 @@ export default function App() {
               <AgentPipeline
                 patientInfo={patientInfo}
                 timelineData={timelineData}
+                assignedSubject={assignedSubject}
                 onComplete={handlePipelineComplete}
                 onStateChange={handleStateChange}
               />
@@ -142,6 +156,7 @@ export default function App() {
               <FinalDashboard
                 patientInfo={patientInfo}
                 timelineData={timelineData}
+                assignedSubject={assignedSubject}
                 pipelineOutputs={pipelineOutputs}
                 onReset={handleReset}
               />
@@ -161,7 +176,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Floating Callout: Pipeline Completion (overlaps frame edge) */}
+      {/* Floating Callout: Pipeline Completion */}
       {screen === 'pipeline' && patientInfo && (
         <div className="floating-callout" style={{ position: 'fixed', bottom: 32, right: 32 }}>
           <div className="flex items-center gap-3">

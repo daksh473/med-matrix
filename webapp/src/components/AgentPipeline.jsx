@@ -3,7 +3,7 @@ import AgentCard from './AgentCard';
 import PayloadModal from './PayloadModal';
 import StatCards from './StatCards';
 import TelemetryChart from './TelemetryChart';
-import { Search, RotateCcw, CheckCircle2, Sparkles, Clock, Bug, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, RotateCcw, CheckCircle2, Sparkles, Clock, Bug, ChevronDown, ChevronUp, Database } from 'lucide-react';
 
 const AGENTS = [
   { id: 'genolens', step: 1, badge: 'Pharmacogenomics', title: 'GenoLens Agent', description: 'Analyzes patient genetic variant markers to evaluate CYP enzyme clearance rates, metabolism phenotypes, and interaction risks.' },
@@ -21,12 +21,12 @@ const THINKING_LOGS = {
   alertai:  ['Ingesting recommendation & baseline metrics...', 'Deriving HR & SpO₂ safety bounds...', 'Establishing alert criteria...', 'Finalizing follow-up protocol...'],
 };
 
-export default function AgentPipeline({ patientInfo, timelineData, onComplete, onStateChange }) {
+export default function AgentPipeline({ patientInfo, timelineData, assignedSubject, onComplete, onStateChange }) {
   const [agentStates, setAgentStates] = useState({
     genolens: 'waiting', pulseiq: 'waiting', synthai: 'waiting', pharmai: 'waiting', alertai: 'waiting',
   });
   const [agentOutputs, setAgentOutputs] = useState({});
-  const [agentDebug, setAgentDebug] = useState({});   // { agentId: { systemPrompt, userPrompt, mode } }
+  const [agentDebug, setAgentDebug] = useState({});
   const [thinkingLogs, setThinkingLogs] = useState({});
   const [activeModal, setActiveModal] = useState(null);
   const [isPipelineRunning, setIsPipelineRunning] = useState(false);
@@ -63,9 +63,8 @@ export default function AgentPipeline({ patientInfo, timelineData, onComplete, o
           outputs[agent.id] = data.data;
           setAgentOutputs(prev => ({ ...prev, [agent.id]: data.data }));
           setAgentStates(prev => ({ ...prev, [agent.id]: 'complete' }));
-          // Store debug info from server response
           if (data.debug) {
-            setAgentDebug(prev => ({ ...prev, [agent.id]: { ...data.debug, mode: data.mode } }));
+            setAgentDebug(prev => ({ ...prev, [agent.id]: { ...data.debug, mode: data.mode, assignedSubject: data.assignedSubject } }));
           }
         } else {
           setAgentStates(prev => ({ ...prev, [agent.id]: 'error' }));
@@ -120,7 +119,7 @@ export default function AgentPipeline({ patientInfo, timelineData, onComplete, o
 
       {/* Debug Panel (collapsible) */}
       {showDebug && Object.keys(agentDebug).length > 0 && (
-        <DebugPanel agentDebug={agentDebug} />
+        <DebugPanel agentDebug={agentDebug} assignedSubject={assignedSubject} />
       )}
 
       {/* Pipeline Title */}
@@ -131,6 +130,11 @@ export default function AgentPipeline({ patientInfo, timelineData, onComplete, o
           <span className="text-[10px] font-mono text-[var(--text-muted)]">
             {patientInfo.name} • {patientInfo.geneticVariant.split(' ')[0]}
           </span>
+          {assignedSubject && (
+            <span className="ml-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[var(--indigo)] text-[10px] font-mono font-bold">
+              <Database className="w-3 h-3" /> Grounded in {assignedSubject.display_name}
+            </span>
+          )}
         </div>
         {isAllComplete && (
           <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-bold">
@@ -163,26 +167,45 @@ export default function AgentPipeline({ patientInfo, timelineData, onComplete, o
 }
 
 /* ─────────────────────────────────────────────
-   Collapsible Debug Panel
+   Collapsible Debug Panel (Step 6 Enriched)
    ───────────────────────────────────────────── */
-function DebugPanel({ agentDebug }) {
+function DebugPanel({ agentDebug, assignedSubject }) {
   const [expanded, setExpanded] = useState({});
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
-
   const agentNames = { genolens: 'GenoLens', pulseiq: 'PulseIQ', synthai: 'SynthAI', pharmai: 'PharmAI', alertai: 'AlertAI' };
 
+  const subj = assignedSubject || agentDebug.genolens?.assignedSubject;
+
   return (
-    <div className="content-card border-2 border-amber-300 bg-amber-50/50">
-      <div className="flex items-center gap-2 pb-3 mb-3 border-b border-amber-200">
-        <Bug className="w-4 h-4 text-amber-600" />
-        <h3 className="text-sm font-bold text-amber-800">Debug: Exact Prompts Sent Per Agent</h3>
-        <span className="text-[10px] font-mono text-amber-500 ml-auto">Verify different patients → different prompts</span>
+    <div className="content-card border-2 border-amber-300 bg-amber-50/50 space-y-3">
+      <div className="flex items-center justify-between pb-2 border-b border-amber-200">
+        <div className="flex items-center gap-2">
+          <Bug className="w-4 h-4 text-amber-600" />
+          <h3 className="text-sm font-bold text-amber-900">Debug: Prompt & Data Provenance Inspector</h3>
+        </div>
+        <span className="text-[10px] font-mono text-amber-600">Step 6 Active Verification</span>
       </div>
+
+      {/* Real Subject Grounding Line */}
+      {subj && (
+        <div className="p-2.5 rounded-xl bg-white border border-amber-200 flex items-center justify-between text-xs font-mono">
+          <div className="flex items-center gap-2">
+            <Database className="w-4 h-4 text-[var(--indigo)]" />
+            <span className="font-bold text-slate-800">Assigned Real Subject:</span>
+            <span className="text-[var(--indigo)] font-bold">{subj.display_name}</span>
+            <span className="text-slate-500">({subj.source === 'ppg_dalia' ? 'PPG-DaLiA Dataset' : 'Fitbit Tracker Dataset'})</span>
+          </div>
+          <div className="text-[10px] text-slate-500">
+            Baseline HR: <strong className="text-rose-500">{subj.heart_rate_mean} bpm</strong> | Steps: <strong className="text-amber-600">{subj.steps_mean}</strong>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2">
         {Object.entries(agentDebug).map(([agentId, dbg]) => (
           <div key={agentId} className="rounded-xl border border-amber-200 bg-white overflow-hidden">
             <button onClick={() => toggle(agentId)} className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-semibold text-amber-800 hover:bg-amber-50 transition-colors">
-              <span>{agentNames[agentId] || agentId} — <span className="font-mono text-[10px] text-amber-500">mode: {dbg.mode}</span></span>
+              <span>{agentNames[agentId] || agentId} — <span className="font-mono text-[10px] text-amber-600">mode: {dbg.mode}</span></span>
               {expanded[agentId] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
             {expanded[agentId] && (
@@ -192,7 +215,7 @@ function DebugPanel({ agentDebug }) {
                   <pre className="text-[11px] text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200 whitespace-pre-wrap overflow-x-auto max-h-[150px] overflow-y-auto">{dbg.systemPrompt}</pre>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono font-bold text-amber-700 uppercase block mb-1">User Prompt (the actual text sent):</span>
+                  <span className="text-[10px] font-mono font-bold text-amber-700 uppercase block mb-1">User Prompt (Interpolated with Real Subject Seed):</span>
                   <pre className="text-[11px] text-gray-700 bg-amber-50 p-3 rounded-lg border border-amber-200 whitespace-pre-wrap overflow-x-auto max-h-[300px] overflow-y-auto">{dbg.userPrompt}</pre>
                 </div>
               </div>
