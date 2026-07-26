@@ -1,0 +1,25 @@
+# Dependencies & Build Outputs
+node_modules/
+webapp/node_modules/
+dist/
+webapp/dist/
+build/
+
+# Large Datasets & Compressed Archives (>50MB)
+*.zip
+*.tar.gz
+*.pkl
+*.mat
+*.edf
+*.dat
+unused_datasets/
+ppg+dalia/
+
+# Caches & Environment Files
+__pycache__/
+*.log
+.DS_Store
+.env
+.env.local
+.vscode/
+.idea/

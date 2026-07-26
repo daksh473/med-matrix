@@ -1,0 +1,63 @@
+{
+  "version": "2.0",
+  "source_days": 31,
+  "sources": {
+    "heart_rate": "Fitbit Fitness Tracker Data (Fitabase)",
+    "steps": "Fitbit Fitness Tracker Data (Fitabase)",
+    "sleep_hours": "Fitbit Fitness Tracker Data (Fitabase)",
+    "spo2": "BIDMC PPG and Respiration Dataset v1.0.0 (PhysioNet)",
+    "activity_validation": "Single Chest-Mounted Accelerometer HAR Dataset",
+    "shhs_psg_status": "Skipped (only raw EDF files present, using Fitbit sleep profile)"
+  },
+  "heart_rate": {
+    "mean": 77.55,
+    "std": 4.06,
+    "min": 68.82,
+    "max": 85.04,
+    "day_to_day_noise_mean": 4.81,
+    "day_to_day_noise_std": 3.25
+  },
+  "hr_intraday_variability": {
+    "mean": 15.62,
+    "std": 4.55,
+    "min": 7.06,
+    "max": 25.01,
+    "day_to_day_noise_mean": 4.77,
+    "day_to_day_noise_std": 3.24
+  },
+  "steps": {
+    "mean": 9794.81,
+    "std": 3877.66,
+    "min": 1551.0,
+    "max": 20031.0,
+    "day_to_day_noise_mean": 3949.47,
+    "day_to_day_noise_std": 3368.83
+  },
+  "sleep_hours": {
+    "mean": 7.47,
+    "std": 1.02,
+    "min": 4.97,
+    "max": 10.5,
+    "day_to_day_noise_mean": 1.04,
+    "day_to_day_noise_std": 1.07
+  },
+  "spo2": {
+    "mean": 96.72,
+    "std": 3.3,
+    "min": 83.0,
+    "max": 100.0,
+    "reading_to_reading_noise_mean": 0.0503,
+    "reading_to_reading_noise_std": 0.2976,
+    "daily_noise_sigma": 0.5
+  },
+  "activity_validation": {
+    "mean": 3681.36,
+    "std": 167.33,
+    "x_mean": 1988.08,
+    "x_std": 108.05,
+    "y_mean": 2385.07,
+    "y_std": 91.18,
+    "z_mean": 1972.96,
+    "z_std": 90.53
+  }
+}

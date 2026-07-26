@@ -1,0 +1,15 @@
+{
+  "source": "BIDMC PPG and Respiration Dataset v1.0.0 (PhysioNet)",
+  "total_records": 53,
+  "total_readings": 25365,
+  "sampling_rate_hz": 1.0,
+  "spo2": {
+    "mean": 96.72,
+    "std": 3.3,
+    "min": 83.0,
+    "max": 100.0,
+    "reading_to_reading_noise_mean": 0.0503,
+    "reading_to_reading_noise_std": 0.2976,
+    "daily_noise_sigma": 0.5
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "source_days": 31,
+  "heart_rate": {
+    "mean": 77.55,
+    "std": 4.06,
+    "min": 68.82,
+    "max": 85.04,
+    "day_to_day_noise_mean": 4.81,
+    "day_to_day_noise_std": 3.25
+  },
+  "hr_intraday_variability": {
+    "mean": 15.62,
+    "std": 4.55,
+    "min": 7.06,
+    "max": 25.01,
+    "day_to_day_noise_mean": 4.77,
+    "day_to_day_noise_std": 3.24
+  },
+  "steps": {
+    "mean": 9794.81,
+    "std": 3877.66,
+    "min": 1551.0,
+    "max": 20031.0,
+    "day_to_day_noise_mean": 3949.47,
+    "day_to_day_noise_std": 3368.83
+  },
+  "sleep_hours": {
+    "mean": 7.47,
+    "std": 1.02,
+    "min": 4.97,
+    "max": 10.5,
+    "day_to_day_noise_mean": 1.04,
+    "day_to_day_noise_std": 1.07
+  }
+}

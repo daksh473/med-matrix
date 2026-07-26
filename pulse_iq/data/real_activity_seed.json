@@ -1,0 +1,37 @@
+{
+  "source": "Single Chest-Mounted Accelerometer HAR Dataset",
+  "total_participants": 15,
+  "total_samples": 1801306,
+  "accelerometer_magnitude_raw": {
+    "mean": 3681.36,
+    "std": 167.33,
+    "x_mean": 1988.08,
+    "x_std": 108.05,
+    "y_mean": 2385.07,
+    "y_std": 91.18,
+    "z_mean": 1972.96,
+    "z_std": 90.53
+  },
+  "activity_classes": {
+    "1": {
+      "name": "Working at Computer",
+      "support": 1173
+    },
+    "2": {
+      "name": "Standing Up / Walking",
+      "support": 477
+    },
+    "3": {
+      "name": "Standing",
+      "support": 271
+    },
+    "4": {
+      "name": "Walking",
+      "support": 613
+    },
+    "0": {
+      "name": "Other / Transitions",
+      "support": 98
+    }
+  }
+}
