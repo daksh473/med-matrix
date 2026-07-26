@@ -1,36 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import Sidebar from './components/Sidebar';
+import RightPanel from './components/RightPanel';
 import IntakeForm from './components/IntakeForm';
 import AgentPipeline from './components/AgentPipeline';
 import FinalDashboard from './components/FinalDashboard';
-import { Activity, ShieldCheck, Heart, Sparkles, RefreshCw } from 'lucide-react';
+import { Activity, RefreshCw } from 'lucide-react';
 import defaultTimelineData from './data/patient_timeline.json';
 
 export default function App() {
-  const [screen, setScreen] = useState('intake'); // 'intake' | 'pipeline' | 'dashboard'
+  const [screen, setScreen] = useState('intake');
   const [patientInfo, setPatientInfo] = useState(null);
   const [timelineData, setTimelineData] = useState(defaultTimelineData);
   const [pipelineOutputs, setPipelineOutputs] = useState(null);
-  const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
+  const [agentStates, setAgentStates] = useState({});
 
-  // Try fetching timeline data from server API on mount
+  // Try loading timeline from server
   useEffect(() => {
-    async function loadTimeline() {
+    (async () => {
       try {
-        setIsLoadingTimeline(true);
         const res = await fetch('/api/timeline');
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setTimelineData(data);
-          }
+          if (Array.isArray(data) && data.length > 0) setTimelineData(data);
         }
-      } catch (err) {
-        console.warn('Using embedded patient_timeline.json dataset');
-      } finally {
-        setIsLoadingTimeline(false);
-      }
-    }
-    loadTimeline();
+      } catch { /* use embedded data */ }
+    })();
   }, []);
 
   const handleIntakeSubmit = (info) => {
@@ -38,131 +32,151 @@ export default function App() {
     setScreen('pipeline');
   };
 
-  const handleTimelineUpload = (customTimeline) => {
-    setTimelineData(customTimeline);
-  };
+  const handleTimelineUpload = (custom) => setTimelineData(custom);
 
   const handlePipelineComplete = (outputs) => {
     setPipelineOutputs(outputs);
-    // Move to dashboard after pipeline completes
     setScreen('dashboard');
+  };
+
+  const handleStateChange = (states, outputs) => {
+    setAgentStates(states);
+    if (outputs) setPipelineOutputs(prev => ({ ...prev, ...outputs }));
   };
 
   const handleReset = () => {
     setScreen('intake');
     setPatientInfo(null);
     setPipelineOutputs(null);
+    setAgentStates({});
   };
 
+  const confidenceValue = pipelineOutputs?.pharmai?.confidence_level || null;
+
   return (
-    <div className="min-h-screen bg-[#090c15] text-slate-100 font-sans selection:bg-cyan-500 selection:text-white">
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-40 bg-[#090c15]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20">
-            <Activity className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-lg text-white tracking-tight">Med Matrix AI</span>
-              <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] font-bold">
-                N-of-1 Decision System
-              </span>
+    <div className="min-h-screen relative">
+      {/* Background Pattern */}
+      <div className="bg-pattern" />
+
+      {/* Main Floating Frame */}
+      <div className="main-frame">
+        {/* Top Navigation */}
+        <header className="flex items-center justify-between px-7 py-4 border-b border-[var(--border-light)]">
+          {/* Left: Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--indigo)] to-[var(--sky)] flex items-center justify-center text-white shadow-md">
+              <Activity className="w-5 h-5" />
             </div>
-            <p className="text-[11px] text-slate-400 hidden sm:block">Chained 5-Agent Precision Medicine Platform</p>
+            <div>
+              <span className="font-extrabold text-base text-[var(--text-heading)] tracking-tight">Med Matrix AI</span>
+            </div>
           </div>
-        </div>
 
-        {/* Navigation Step Pills */}
-        <div className="hidden md:flex items-center gap-2 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
-          <button
-            onClick={() => setScreen('intake')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-              screen === 'intake'
-                ? 'bg-slate-800 text-cyan-400 font-bold'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            1. Patient Intake
-          </button>
-          <span className="text-slate-600">→</span>
-          <button
-            onClick={() => patientInfo && setScreen('pipeline')}
-            disabled={!patientInfo}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-              screen === 'pipeline'
-                ? 'bg-slate-800 text-cyan-400 font-bold'
-                : 'text-slate-400 hover:text-white disabled:opacity-40'
-            }`}
-          >
-            2. AI Agent Pipeline
-          </button>
-          <span className="text-slate-600">→</span>
-          <button
-            onClick={() => pipelineOutputs && setScreen('dashboard')}
-            disabled={!pipelineOutputs}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-              screen === 'dashboard'
-                ? 'bg-slate-800 text-cyan-400 font-bold'
-                : 'text-slate-400 hover:text-white disabled:opacity-40'
-            }`}
-          >
-            3. Final Recommendation
-          </button>
-        </div>
-
-        {/* Right Status Badge */}
-        <div className="flex items-center gap-2">
-          {screen !== 'intake' && (
+          {/* Center: Nav Links */}
+          <nav className="hidden md:flex items-center gap-8 text-xs font-medium tracking-wide uppercase">
             <button
-              onClick={handleReset}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 hover:text-white transition-colors"
+              onClick={() => setScreen('intake')}
+              className={`transition-colors ${screen === 'intake' ? 'text-[var(--indigo)] font-bold' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
             >
-              <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Reset Demo</span>
+              Patient Intake
             </button>
-          )}
+            <button
+              onClick={() => patientInfo && setScreen('pipeline')}
+              disabled={!patientInfo}
+              className={`transition-colors ${screen === 'pipeline' ? 'text-[var(--indigo)] font-bold' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'} disabled:opacity-30`}
+            >
+              AI Pipeline
+            </button>
+            <button
+              onClick={() => pipelineOutputs && setScreen('dashboard')}
+              disabled={!pipelineOutputs}
+              className={`transition-colors ${screen === 'dashboard' ? 'text-[var(--indigo)] font-bold' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'} disabled:opacity-30`}
+            >
+              Recommendation
+            </button>
+          </nav>
 
-          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-semibold">
-            <ShieldCheck className="w-3.5 h-3.5" /> Hackathon Pitch Ready
+          {/* Right: Actions */}
+          <div className="flex items-center gap-3">
+            {screen !== 'intake' && (
+              <button onClick={handleReset} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-dark)] font-medium transition-colors">
+                <RefreshCw className="w-3.5 h-3.5" /> Reset
+              </button>
+            )}
+            <button className="px-5 py-2 rounded-full bg-[var(--navy)] hover:bg-[#252a4a] text-white text-xs font-bold shadow-md transition-all">
+              N-of-1 Demo
+            </button>
+          </div>
+        </header>
+
+        {/* Content Layout: Sidebar + Main + Right Panel */}
+        <div className="flex min-h-[calc(100vh-120px)]">
+          {/* Sidebar */}
+          <Sidebar
+            activeScreen={screen}
+            onNavigate={setScreen}
+            pipelineReady={!!patientInfo}
+            dashboardReady={!!pipelineOutputs}
+          />
+
+          {/* Main Content Area */}
+          <main className="flex-1 p-6 overflow-y-auto">
+            {screen === 'intake' && (
+              <IntakeForm
+                onSubmit={handleIntakeSubmit}
+                timelineData={timelineData}
+                onTimelineUpload={handleTimelineUpload}
+              />
+            )}
+
+            {screen === 'pipeline' && patientInfo && (
+              <AgentPipeline
+                patientInfo={patientInfo}
+                timelineData={timelineData}
+                onComplete={handlePipelineComplete}
+                onStateChange={handleStateChange}
+              />
+            )}
+
+            {screen === 'dashboard' && patientInfo && pipelineOutputs && (
+              <FinalDashboard
+                patientInfo={patientInfo}
+                timelineData={timelineData}
+                pipelineOutputs={pipelineOutputs}
+                onReset={handleReset}
+              />
+            )}
+          </main>
+
+          {/* Right Panel */}
+          {patientInfo && (
+            <RightPanel
+              patientInfo={patientInfo}
+              timelineData={timelineData}
+              agentStates={agentStates}
+              confidenceValue={confidenceValue}
+              screen={screen}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Floating Callout: Pipeline Completion (overlaps frame edge) */}
+      {screen === 'pipeline' && patientInfo && (
+        <div className="floating-callout" style={{ position: 'fixed', bottom: 32, right: 32 }}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--indigo)] to-[var(--sky)] flex items-center justify-center text-white">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-xl font-extrabold text-[var(--text-heading)]">
+                {Object.values(agentStates).filter(s => s === 'complete').length}/5
+              </span>
+              <span className="block text-[11px] text-[var(--text-muted)]">Agents Complete</span>
+            </div>
           </div>
         </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="p-4 sm:p-8">
-        {screen === 'intake' && (
-          <IntakeForm
-            onSubmit={handleIntakeSubmit}
-            timelineData={timelineData}
-            onTimelineUpload={handleTimelineUpload}
-          />
-        )}
-
-        {screen === 'pipeline' && patientInfo && (
-          <AgentPipeline
-            patientInfo={patientInfo}
-            timelineData={timelineData}
-            onComplete={handlePipelineComplete}
-            onBackToIntake={() => setScreen('intake')}
-          />
-        )}
-
-        {screen === 'dashboard' && patientInfo && pipelineOutputs && (
-          <FinalDashboard
-            patientInfo={patientInfo}
-            timelineData={timelineData}
-            pipelineOutputs={pipelineOutputs}
-            onReset={handleReset}
-          />
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800/60 py-4 px-8 text-center text-xs text-slate-500 font-mono flex items-center justify-between">
-        <span>Med Matrix AI — N-of-1 Precision Decision System Demo</span>
-        <span>Grounded in Fitbit & PhysioNet BIDMC Telemetry</span>
-      </footer>
+      )}
     </div>
   );
 }

@@ -1,158 +1,90 @@
 import React, { useState, useEffect } from 'react';
 import AgentCard from './AgentCard';
 import PayloadModal from './PayloadModal';
-import { ArrowLeft, Play, Sparkles, CheckCircle2, RotateCcw } from 'lucide-react';
+import StatCards from './StatCards';
+import TelemetryChart from './TelemetryChart';
+import { Search, RotateCcw, CheckCircle2, Sparkles, Clock } from 'lucide-react';
 
 const AGENTS = [
   {
-    id: 'genolens',
-    step: 1,
-    badge: 'Pharmacogenomics',
-    title: 'GenoLens Agent',
-    description: 'Analyzes patient genetic variant markers to evaluate hepatic CYP enzyme clearance rates, drug metabolism phenotypes, and inherent interaction risks.',
+    id: 'genolens', step: 1, badge: 'Pharmacogenomics', title: 'GenoLens Agent',
+    description: 'Analyzes patient genetic variant markers to evaluate CYP enzyme clearance rates, metabolism phenotypes, and interaction risks.',
   },
   {
-    id: 'pulseiq',
-    step: 2,
-    badge: 'Continuous Telemetry',
-    title: 'PulseIQ Agent',
-    description: 'Processes the full 60-day wearable dataset (heart rate, SpO2, sleep, steps) comparing baseline vs post-intervention phases to extract trajectory curves and anomalies.',
+    id: 'pulseiq', step: 2, badge: 'Continuous Telemetry', title: 'PulseIQ Agent',
+    description: 'Processes 60-day wearable dataset (heart rate, SpO₂, sleep, steps) comparing baseline vs post-intervention phases.',
   },
   {
-    id: 'synthai',
-    step: 3,
-    badge: 'Information Commons',
-    title: 'SynthAI Agent',
-    description: 'Fuses genomic clearance defects, continuous telemetry trends, clinical symptoms, and exposome data into a multi-layer GIS-style Information Commons profile.',
+    id: 'synthai', step: 3, badge: 'Information Commons', title: 'SynthAI Agent',
+    description: 'Fuses genomic clearance defects, telemetry trends, clinical symptoms, and exposome data into a multi-layer profile.',
   },
   {
-    id: 'pharmai',
-    step: 4,
-    badge: 'N-of-1 Precision Dosing',
-    title: 'PharmAI Agent',
-    description: 'Selects the optimal drug and precise dosage regimen that maximizes therapeutic efficacy while completely bypassing genomic clearance defects.',
+    id: 'pharmai', step: 4, badge: 'N-of-1 Dosing', title: 'PharmAI Agent',
+    description: 'Selects optimal drug and dosage regimen that bypasses genomic clearance defects while maximizing therapeutic efficacy.',
   },
   {
-    id: 'alertai',
-    step: 5,
-    badge: 'Continuous Guardrails',
-    title: 'AlertAI Agent',
-    description: 'Establishes continuous telemetry safety thresholds, adverse event warning triggers, and bi-weekly follow-up review schedules.',
+    id: 'alertai', step: 5, badge: 'Safety Guardrails', title: 'AlertAI Agent',
+    description: 'Establishes continuous telemetry safety thresholds, adverse event triggers, and follow-up schedules.',
   },
 ];
 
 const THINKING_LOGS = {
-  genolens: [
-    'Parsing pharmacogenomic variant markers...',
-    'Cross-referencing CPIC & PharmGKB guidelines...',
-    'Evaluating hepatic CYP2D6 / CYP2C19 clearance kinetics...',
-    'Formulating drug interaction risk summary...'
-  ],
-  pulseiq: [
-    'Ingesting 60-day continuous wearable telemetry dataset...',
-    'Computing baseline (Days 1-30) vs post-intervention statistics...',
-    'Modeling 18-day exponential heart rate recovery curve...',
-    'Detecting nocturnal sleep fragmentation anomalies...'
-  ],
-  synthai: [
-    'Initiating Information Commons GIS multi-layer fusion...',
-    'Overlaying Layer 1 (Genomics) with Layer 2 (Telemetry)...',
-    'Synthesizing Layer 3 (Clinical Symptoms) and Layer 4 (Exposome)...',
-    'Generating unified precision patient profile...'
-  ],
-  pharmai: [
-    'Evaluating candidate antihypertensive & cardiovascular molecules...',
-    'Filtering for non-CYP2D6 metabolic clearance pathways...',
-    'Calculating N-of-1 precision dose (Amlodipine + Lisinopril)...',
-    'Verifying therapeutic index and confidence score...'
-  ],
-  alertai: [
-    'Ingesting PharmAI recommendation & PulseIQ baseline metrics...',
-    'Deriving continuous resting heart rate and SpO2 safety bounds...',
-    'Establishing adverse event alert criteria...',
-    'Finalizing bi-weekly clinical follow-up protocol...'
-  ]
+  genolens: ['Parsing pharmacogenomic variant markers...', 'Cross-referencing CPIC & PharmGKB...', 'Evaluating CYP2D6 clearance kinetics...', 'Formulating risk summary...'],
+  pulseiq:  ['Ingesting 60-day telemetry dataset...', 'Computing baseline vs post-intervention stats...', 'Modeling exponential HR recovery curve...', 'Detecting sleep anomalies...'],
+  synthai:  ['Initiating multi-layer fusion...', 'Overlaying genomics with telemetry...', 'Synthesizing clinical & exposome data...', 'Generating unified profile...'],
+  pharmai:  ['Evaluating candidate molecules...', 'Filtering non-CYP2D6 clearance pathways...', 'Calculating N-of-1 dose...', 'Verifying therapeutic index...'],
+  alertai:  ['Ingesting recommendation & baseline metrics...', 'Deriving HR & SpO₂ safety bounds...', 'Establishing alert criteria...', 'Finalizing follow-up protocol...'],
 };
 
-export default function AgentPipeline({
-  patientInfo,
-  timelineData,
-  onComplete,
-  onBackToIntake,
-}) {
-  // States per agent: 'waiting' | 'thinking' | 'complete' | 'error'
+export default function AgentPipeline({ patientInfo, timelineData, onComplete, onStateChange }) {
   const [agentStates, setAgentStates] = useState({
-    genolens: 'waiting',
-    pulseiq: 'waiting',
-    synthai: 'waiting',
-    pharmai: 'waiting',
-    alertai: 'waiting',
+    genolens: 'waiting', pulseiq: 'waiting', synthai: 'waiting', pharmai: 'waiting', alertai: 'waiting',
   });
-
   const [agentOutputs, setAgentOutputs] = useState({});
   const [thinkingLogs, setThinkingLogs] = useState({});
-  const [activeModal, setActiveModal] = useState(null); // { agentTitle, payload }
+  const [activeModal, setActiveModal] = useState(null);
   const [isPipelineRunning, setIsPipelineRunning] = useState(false);
 
-  // Automatically start Agent 1 on mount
-  useEffect(() => {
-    runPipeline();
-  }, []);
+  // Propagate state changes up
+  useEffect(() => { onStateChange?.(agentStates, agentOutputs); }, [agentStates, agentOutputs]);
+
+  useEffect(() => { runPipeline(); }, []);
 
   const runPipeline = async () => {
     setIsPipelineRunning(true);
-    setAgentStates({
-      genolens: 'waiting',
-      pulseiq: 'waiting',
-      synthai: 'waiting',
-      pharmai: 'waiting',
-      alertai: 'waiting',
-    });
+    const freshStates = { genolens: 'waiting', pulseiq: 'waiting', synthai: 'waiting', pharmai: 'waiting', alertai: 'waiting' };
+    setAgentStates(freshStates);
     setAgentOutputs({});
-
-    // Execute sequentially
     const outputs = {};
 
     for (let i = 0; i < AGENTS.length; i++) {
       const agent = AGENTS[i];
-      const agentId = agent.id;
+      setAgentStates(prev => ({ ...prev, [agent.id]: 'thinking' }));
 
-      // Set to thinking
-      setAgentStates(prev => ({ ...prev, [agentId]: 'thinking' }));
-
-      // Ticker log animation
-      const logs = THINKING_LOGS[agentId] || ['Processing agent payload...'];
-      for (let l = 0; l < logs.length; l++) {
-        setThinkingLogs(prev => ({ ...prev, [agentId]: logs[l] }));
+      const logs = THINKING_LOGS[agent.id];
+      for (const log of logs) {
+        setThinkingLogs(prev => ({ ...prev, [agent.id]: log }));
         await new Promise(r => setTimeout(r, 600));
       }
 
       try {
-        const response = await fetch('/api/agent', {
+        const res = await fetch('/api/agent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            agentId,
-            patientInfo,
-            timelineData,
-            previousOutputs: outputs,
-          }),
+          body: JSON.stringify({ agentId: agent.id, patientInfo, timelineData, previousOutputs: outputs }),
         });
-
-        const resData = await response.json();
-
-        if (resData && resData.success) {
-          outputs[agentId] = resData.data;
-          setAgentOutputs(prev => ({ ...prev, [agentId]: resData.data }));
-          setAgentStates(prev => ({ ...prev, [agentId]: 'complete' }));
+        const data = await res.json();
+        if (data?.success) {
+          outputs[agent.id] = data.data;
+          setAgentOutputs(prev => ({ ...prev, [agent.id]: data.data }));
+          setAgentStates(prev => ({ ...prev, [agent.id]: 'complete' }));
         } else {
-          setAgentStates(prev => ({ ...prev, [agentId]: 'error' }));
+          setAgentStates(prev => ({ ...prev, [agent.id]: 'error' }));
           setIsPipelineRunning(false);
           return;
         }
-      } catch (err) {
-        console.error(`Error in agent ${agentId}:`, err);
-        setAgentStates(prev => ({ ...prev, [agentId]: 'error' }));
+      } catch {
+        setAgentStates(prev => ({ ...prev, [agent.id]: 'error' }));
         setIsPipelineRunning(false);
         return;
       }
@@ -162,81 +94,80 @@ export default function AgentPipeline({
     onComplete(outputs);
   };
 
-  const retryAgent = (agentId) => {
-    runPipeline();
-  };
+  const completedCount = Object.values(agentStates).filter(s => s === 'complete').length;
+  const isAllComplete = completedCount === 5;
 
-  const handleInspect = (title, payload) => {
-    setActiveModal({ title, payload });
-  };
-
-  const isAllComplete = Object.values(agentStates).every(s => s === 'complete');
+  // Current time display
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-16">
-      {/* Navigation Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <button
-          onClick={onBackToIntake}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Patient Dossier</span>
-        </button>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={runPipeline}
-            disabled={isPipelineRunning}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-mono text-slate-300 hover:text-cyan-400 disabled:opacity-50 transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Re-run Pipeline</span>
-          </button>
-
-          <span className="text-xs text-slate-400 font-mono">
-            Patient: <strong className="text-white">{patientInfo.name}</strong> ({patientInfo.geneticVariant.split(' ')[0]})
-          </span>
+    <div className="space-y-6 animate-fade-in">
+      {/* Top Bar: Search + Time Badge */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1 relative">
+          <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search agents, metrics, or patient data..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[var(--bg-input)] border border-[var(--border-light)] text-sm text-[var(--text-dark)] focus:outline-none focus:border-[var(--indigo)] focus:ring-2 focus:ring-blue-100 transition-all"
+          />
         </div>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--bg-input)] border border-[var(--border-light)] text-xs font-medium text-[var(--text-secondary)]">
+          <Clock className="w-3.5 h-3.5 text-[var(--indigo)]" />
+          <span>{timeStr}</span>
+          <span className="text-[var(--text-faint)]">|</span>
+          <span>{dateStr}</span>
+        </div>
+        <button
+          onClick={runPipeline}
+          disabled={isPipelineRunning}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--bg-input)] border border-[var(--border-light)] hover:border-[var(--border-medium)] text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--indigo)] disabled:opacity-50 transition-colors"
+        >
+          <RotateCcw className="w-3.5 h-3.5" /> Re-run
+        </button>
       </div>
 
-      {/* Title */}
-      <div className="glass-card rounded-2xl p-6 border border-cyan-500/20 shadow-xl flex items-center justify-between">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 text-[11px] font-mono font-semibold uppercase mb-1.5">
-            <Sparkles className="w-3 h-3" /> Sequential 5-Agent Chain Execution
-          </div>
-          <h2 className="text-2xl font-extrabold text-white tracking-tight">AI Agent Decision Pipeline</h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Passing context sequentially from GenoLens $\rightarrow$ PulseIQ $\rightarrow$ SynthAI $\rightarrow$ PharmAI $\rightarrow$ AlertAI
-          </p>
-        </div>
+      {/* 3 Stat Cards */}
+      <StatCards pipelineOutputs={agentOutputs} />
 
+      {/* 2 Chart Cards */}
+      <TelemetryChart timelineData={timelineData} />
+
+      {/* Pipeline Title */}
+      <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-[var(--indigo)]" />
+          <h3 className="text-sm font-bold text-[var(--text-heading)]">Sequential Agent Chain</h3>
+          <span className="text-[10px] font-mono text-[var(--text-muted)]">
+            {patientInfo.name} • {patientInfo.geneticVariant.split(' ')[0]}
+          </span>
+        </div>
         {isAllComplete && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold font-mono">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>All 5 Agents Complete</span>
-          </div>
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-bold">
+            <CheckCircle2 className="w-3.5 h-3.5" /> All 5 Agents Complete
+          </span>
         )}
       </div>
 
-      {/* Vertical Pipeline Flow */}
-      <div className="relative pt-2">
-        {AGENTS.map((agent, index) => (
+      {/* Vertical Agent Pipeline */}
+      <div className="pt-1">
+        {AGENTS.map((agent, idx) => (
           <AgentCard
             key={agent.id}
             agent={agent}
             status={agentStates[agent.id]}
             output={agentOutputs[agent.id]}
             thinkingLog={thinkingLogs[agent.id]}
-            onRetry={() => retryAgent(agent.id)}
-            onInspectPayload={handleInspect}
-            isLast={index === AGENTS.length - 1}
+            onRetry={runPipeline}
+            onInspectPayload={(title, payload) => setActiveModal({ title, payload })}
+            isLast={idx === AGENTS.length - 1}
           />
         ))}
       </div>
 
-      {/* JSON Viewer Modal */}
+      {/* JSON Modal */}
       {activeModal && (
         <PayloadModal
           agentName={activeModal.title}
