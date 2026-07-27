@@ -123,7 +123,7 @@ export default function App() {
         </header>
 
         {/* Content Layout: Sidebar + Main + Right Panel */}
-        <div className="flex min-h-[calc(100vh-120px)]">
+        <div className="flex min-h-[calc(100vh-65px)]">
           {/* Sidebar */}
           <Sidebar
             activeScreen={screen}
