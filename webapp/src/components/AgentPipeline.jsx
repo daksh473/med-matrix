@@ -188,15 +188,25 @@ function DebugPanel({ agentDebug, assignedSubject }) {
 
       {/* Real Subject Grounding Line */}
       {subj && (
-        <div className="p-2.5 rounded-xl bg-white border border-amber-200 flex items-center justify-between text-xs font-mono">
+        <div className="p-2.5 rounded-xl bg-white border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
           <div className="flex items-center gap-2">
             <Database className="w-4 h-4 text-[var(--indigo)]" />
             <span className="font-bold text-slate-800">Assigned Real Subject:</span>
             <span className="text-[var(--indigo)] font-bold">{subj.display_name}</span>
-            <span className="text-slate-500">({subj.source === 'ppg_dalia' ? 'PPG-DaLiA Dataset' : 'Fitbit Tracker Dataset'})</span>
+            <span className="text-slate-500">
+              ({subj.source === 'wesad' ? 'WESAD Stress Dataset' : subj.source === 'ppg_dalia' ? 'PPG-DaLiA Dataset' : 'Fitbit Tracker Dataset'})
+            </span>
           </div>
-          <div className="text-[10px] text-slate-500">
-            Baseline HR: <strong className="text-rose-500">{subj.heart_rate_mean} bpm</strong> | Steps: <strong className="text-amber-600">{subj.steps_mean}</strong>
+          <div className="text-[10px] text-slate-600">
+            {subj.source === 'wesad' ? (
+              <span>
+                Baseline HR: <strong className="text-slate-800">{subj.baseline_hr_mean || subj.heart_rate_mean} bpm</strong> | Real Stress Delta: <strong className="text-rose-600">+{subj.hr_stress_delta} bpm (+{subj.hr_stress_delta_pct}%)</strong> | HRV: <strong className="text-purple-600">{subj.baseline_hrv_rmssd} ms</strong>
+              </span>
+            ) : (
+              <span>
+                Baseline HR: <strong className="text-rose-500">{subj.heart_rate_mean} bpm</strong> | Steps: <strong className="text-amber-600">{subj.steps_mean}</strong>
+              </span>
+            )}
           </div>
         </div>
       )}

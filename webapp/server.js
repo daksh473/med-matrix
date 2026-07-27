@@ -90,10 +90,24 @@ function generatePatientTimeline(assignedSubject, patientInfo) {
   const sleepMean = seed.sleep_hours_mean || 7.4;
   const spo2Mean = seed.spo2_mean || 96.8;
 
-  // Baseline severity adjustment based on condition text (e.g. hypertension = higher baseline HR)
+  // Baseline severity calculation
   const isSevere = (patientInfo?.condition || '').toLowerCase().includes('stage 2') || (patientInfo?.condition || '').toLowerCase().includes('refractory');
-  const hrElevationFactor = isSevere ? 1.12 : 1.08;
-  const baselineHR = hrMean * hrElevationFactor;
+  
+  let baselineHR = 0;
+  let elevationPct = 0;
+
+  if (seed.source === 'wesad' && seed.hr_stress_delta !== undefined) {
+    // Grounded in real WESAD stress reactivity signature
+    const stressAddon = isSevere ? seed.hr_stress_delta * 1.25 : seed.hr_stress_delta;
+    baselineHR = seed.baseline_hr_mean + stressAddon;
+    elevationPct = ((stressAddon / seed.baseline_hr_mean) * 100.0);
+  } else {
+    // Non-WESAD subjects (Fitbit / PPG-DaLiA): standard fixed 8-12% elevation
+    const hrElevationFactor = isSevere ? 1.12 : 1.08;
+    baselineHR = hrMean * hrElevationFactor;
+    elevationPct = (hrElevationFactor - 1.0) * 100.0;
+  }
+
   const targetHR = hrMean;
 
   // Simple pseudo-random gaussian jitter
