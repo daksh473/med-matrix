@@ -181,9 +181,9 @@ export default function TelemetryChart({ timelineData, compact = false }) {
 
       {/* VIEW 1: Main Dual Area/Line Charts */}
       {activeChartView === 'telemetry' && (
-        <div className="flex gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
           {/* Heart Rate Chart Card */}
-          <div className="content-card flex-1">
+          <div className="content-card flex-1 min-w-0 overflow-hidden">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center">
@@ -197,7 +197,7 @@ export default function TelemetryChart({ timelineData, compact = false }) {
               <PhaseLegend />
             </div>
 
-            <div style={{ height: chartHeight }} className="mt-2">
+            <div style={{ height: chartHeight, width: '100%' }} className="mt-2 min-w-0 overflow-hidden">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={filteredData} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical />
@@ -223,7 +223,7 @@ export default function TelemetryChart({ timelineData, compact = false }) {
           </div>
 
           {/* Sleep & SpO2 Chart Card */}
-          <div className="content-card flex-1">
+          <div className="content-card flex-1 min-w-0 overflow-hidden">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center">
@@ -240,7 +240,7 @@ export default function TelemetryChart({ timelineData, compact = false }) {
               </div>
             </div>
 
-            <div style={{ height: chartHeight }} className="mt-2">
+            <div style={{ height: chartHeight, width: '100%' }} className="mt-2 min-w-0 overflow-hidden">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={filteredData} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical />

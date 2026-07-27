@@ -19,13 +19,24 @@ export default function FinalDashboard({ patientInfo, timelineData, assignedSubj
 
   const confidencePct = parseFloat(pharmai.confidence_level) || 0;
 
-  // High-Resolution PDF Download Generator
+  // High-Resolution PDF Download Generator (Fixed Overlap Engine)
   const handleDownloadPdf = async () => {
     if (!reportRef.current) return;
     setIsGeneratingPdf(true);
 
+    const element = reportRef.current;
+    const originalWidth = element.style.width;
+    const originalMaxWidth = element.style.maxWidth;
+
     try {
-      const element = reportRef.current;
+      // Force explicit width during capture so Recharts SVG containers never overflow or overlap
+      element.style.width = '1050px';
+      element.style.maxWidth = '1050px';
+      window.dispatchEvent(new Event('resize'));
+
+      // Small delay for Recharts to re-render SVG at exact pixel bounds
+      await new Promise(r => setTimeout(r, 150));
+
       const canvas = await html2canvas(element, {
         scale: 2, // High resolution (300 DPI equivalent)
         useCORS: true,
@@ -61,9 +72,12 @@ export default function FinalDashboard({ patientInfo, timelineData, assignedSubj
       pdf.save(fileName);
     } catch (err) {
       console.error('PDF Generation failed:', err);
-      // Fallback to print dialog if canvas fails
       window.print();
     } finally {
+      // Restore original container styles
+      element.style.width = originalWidth;
+      element.style.maxWidth = originalMaxWidth;
+      window.dispatchEvent(new Event('resize'));
       setIsGeneratingPdf(false);
     }
   };
