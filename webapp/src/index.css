@@ -337,9 +337,50 @@ textarea.input-field {
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 /* ====================================================================
-   Print Styles
+   Pristine A4 Print & PDF Styles
    ==================================================================== */
 @media print {
-  .bg-pattern, .sidebar, .top-nav { display: none !important; }
-  .main-frame { box-shadow: none; margin: 0; border-radius: 0; }
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .bg-pattern, .sidebar, header, .no-print, .right-panel, button {
+    display: none !important;
+  }
+
+  .print-header {
+    display: flex !important;
+  }
+
+  .main-frame {
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+  }
+
+  main {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .content-card {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
 }
