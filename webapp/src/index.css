@@ -92,39 +92,42 @@
 }
 
 /* ====================================================================
-   Sidebar
+   Sidebar (With Icon + Text Labels)
    ==================================================================== */
 .sidebar {
-  width: 68px;
+  width: 210px;
   background: var(--bg-sidebar);
   border-radius: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 24px 0;
-  gap: 8px;
+  align-items: stretch;
+  padding: 16px 12px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
-.sidebar-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+.sidebar-btn {
+  width: 100%;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.45);
+  gap: 12px;
+  padding: 0 14px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.sidebar-icon:hover {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.08);
+.sidebar-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
 }
-.sidebar-icon.active {
+.sidebar-btn.active {
   color: var(--navy);
   background: #ffffff;
+  font-weight: 700;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 

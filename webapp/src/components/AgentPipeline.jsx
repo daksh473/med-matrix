@@ -3,7 +3,7 @@ import AgentCard from './AgentCard';
 import PayloadModal from './PayloadModal';
 import StatCards from './StatCards';
 import TelemetryChart from './TelemetryChart';
-import { Search, RotateCcw, CheckCircle2, Sparkles, Clock, Bug, ChevronDown, ChevronUp, Database } from 'lucide-react';
+import { Search, RotateCcw, CheckCircle2, Sparkles, Clock, Bug, ChevronDown, ChevronUp, Database, Power, ArrowRight, Loader2 } from 'lucide-react';
 
 const AGENTS = [
   { id: 'genolens', step: 1, badge: 'Pharmacogenomics', title: 'GenoLens Agent', description: 'Analyzes patient genetic variant markers to evaluate CYP enzyme clearance rates, metabolism phenotypes, and interaction risks.' },
@@ -25,6 +25,10 @@ export default function AgentPipeline({ patientInfo, timelineData, assignedSubje
   const [agentStates, setAgentStates] = useState({
     genolens: 'waiting', pulseiq: 'waiting', synthai: 'waiting', pharmai: 'waiting', alertai: 'waiting',
   });
+  const [agentEnabled, setAgentEnabled] = useState({
+    genolens: true, pulseiq: true, synthai: true, pharmai: true, alertai: true,
+  });
+
   const [agentOutputs, setAgentOutputs] = useState({});
   const [agentDebug, setAgentDebug] = useState({});
   const [thinkingLogs, setThinkingLogs] = useState({});
@@ -35,21 +39,39 @@ export default function AgentPipeline({ patientInfo, timelineData, assignedSubje
   useEffect(() => { onStateChange?.(agentStates, agentOutputs); }, [agentStates, agentOutputs]);
   useEffect(() => { runPipeline(); }, []);
 
+  const toggleAgentEnabled = (agentId) => {
+    setAgentEnabled(prev => ({ ...prev, [agentId]: !prev[agentId] }));
+  };
+
   const runPipeline = async () => {
     setIsPipelineRunning(true);
-    setAgentStates({ genolens: 'waiting', pulseiq: 'waiting', synthai: 'waiting', pharmai: 'waiting', alertai: 'waiting' });
+    const initialStates = { genolens: 'waiting', pulseiq: 'waiting', synthai: 'waiting', pharmai: 'waiting', alertai: 'waiting' };
+    
+    // Mark disabled agents as skipped
+    AGENTS.forEach(a => {
+      if (!agentEnabled[a.id]) initialStates[a.id] = 'skipped';
+    });
+
+    setAgentStates(initialStates);
     setAgentOutputs({});
     setAgentDebug({});
     const outputs = {};
 
     for (let i = 0; i < AGENTS.length; i++) {
       const agent = AGENTS[i];
+
+      // Skip if user turned off this agent
+      if (!agentEnabled[agent.id]) {
+        setAgentStates(prev => ({ ...prev, [agent.id]: 'skipped' }));
+        continue;
+      }
+
       setAgentStates(prev => ({ ...prev, [agent.id]: 'thinking' }));
 
       const logs = THINKING_LOGS[agent.id];
       for (const log of logs) {
         setThinkingLogs(prev => ({ ...prev, [agent.id]: log }));
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 500));
       }
 
       try {
@@ -82,8 +104,9 @@ export default function AgentPipeline({ patientInfo, timelineData, assignedSubje
     onComplete(outputs);
   };
 
-  const completedCount = Object.values(agentStates).filter(s => s === 'complete').length;
-  const isAllComplete = completedCount === 5;
+  const activeAgents = AGENTS.filter(a => agentEnabled[a.id]);
+  const completedCount = activeAgents.filter(a => agentStates[a.id] === 'complete').length;
+  const isAllComplete = activeAgents.length > 0 && completedCount === activeAgents.length;
 
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -106,9 +129,68 @@ export default function AgentPipeline({ patientInfo, timelineData, assignedSubje
         <button onClick={() => setShowDebug(d => !d)} className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-semibold transition-colors ${showDebug ? 'bg-amber-50 border-amber-300 text-amber-700' : 'bg-[var(--bg-input)] border-[var(--border-light)] text-[var(--text-muted)] hover:text-amber-600'}`}>
           <Bug className="w-3.5 h-3.5" /> Debug
         </button>
-        <button onClick={runPipeline} disabled={isPipelineRunning} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--bg-input)] border border-[var(--border-light)] hover:border-[var(--border-medium)] text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--indigo)] disabled:opacity-50 transition-colors">
-          <RotateCcw className="w-3.5 h-3.5" /> Re-run
+        <button onClick={runPipeline} disabled={isPipelineRunning} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--navy)] hover:bg-[#252a4a] text-white text-xs font-bold shadow-md disabled:opacity-50 transition-colors">
+          <RotateCcw className="w-3.5 h-3.5" /> Execute Pipeline
         </button>
+      </div>
+
+      {/* Requirement 4A: Linear Process Flow Stepper */}
+      <div className="content-card bg-gradient-to-r from-blue-50/60 via-purple-50/30 to-emerald-50/60 border border-[var(--border-light)] p-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-bold text-[var(--text-heading)] flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[var(--indigo)]" /> 5-Agent Automation Process Flow
+          </span>
+          <span className="text-[11px] font-mono text-[var(--text-secondary)]">
+            Active Agents: <strong className="text-[var(--indigo)]">{activeAgents.length}/5</strong> | Completed: <strong className="text-emerald-600">{completedCount}</strong>
+          </span>
+        </div>
+
+        {/* Stepper Track */}
+        <div className="flex items-center justify-between relative px-2">
+          {AGENTS.map((ag, idx) => {
+            const st = agentStates[ag.id];
+            const isEnabled = agentEnabled[ag.id];
+
+            return (
+              <React.Fragment key={ag.id}>
+                {/* Node */}
+                <div className="flex flex-col items-center z-10">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs transition-all ${
+                    !isEnabled
+                      ? 'bg-gray-200 text-gray-400 border border-gray-300'
+                      : st === 'complete'
+                      ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200'
+                      : st === 'thinking'
+                      ? 'bg-[var(--indigo)] text-white shadow-md shadow-blue-300 animate-pulse'
+                      : 'bg-white text-[var(--text-secondary)] border border-[var(--border-light)]'
+                  }`}>
+                    {st === 'complete' ? <CheckCircle2 className="w-5 h-5" /> : st === 'thinking' ? <Loader2 className="w-4 h-4 animate-spin" /> : ag.step}
+                  </div>
+                  <span className={`text-[11px] font-semibold mt-1.5 transition-colors ${
+                    !isEnabled ? 'text-gray-400 line-through' : st === 'complete' ? 'text-emerald-600 font-bold' : st === 'thinking' ? 'text-[var(--indigo)] font-bold' : 'text-[var(--text-secondary)]'
+                  }`}>
+                    {ag.title.split(' ')[0]}
+                  </span>
+                  <span className="text-[9px] font-mono text-[var(--text-muted)]">
+                    {!isEnabled ? 'Disabled' : st === 'complete' ? 'Done' : st === 'thinking' ? 'Running' : 'Pending'}
+                  </span>
+                </div>
+
+                {/* Connector Arrow */}
+                {idx < AGENTS.length - 1 && (
+                  <div className="flex-1 h-0.5 mx-2 bg-gray-200 relative self-center -mt-5">
+                    <div
+                      className="h-full bg-[var(--indigo)] transition-all duration-500"
+                      style={{
+                        width: agentStates[AGENTS[idx].id] === 'complete' ? '100%' : '0%'
+                      }}
+                    />
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
       </div>
 
       {/* Stat Cards */}
@@ -122,14 +204,11 @@ export default function AgentPipeline({ patientInfo, timelineData, assignedSubje
         <DebugPanel agentDebug={agentDebug} assignedSubject={assignedSubject} />
       )}
 
-      {/* Pipeline Title */}
+      {/* Pipeline Title & Toggles Header */}
       <div className="flex items-center justify-between pt-2">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-[var(--indigo)]" />
-          <h3 className="text-sm font-bold text-[var(--text-heading)]">Sequential Agent Chain</h3>
-          <span className="text-[10px] font-mono text-[var(--text-muted)]">
-            {patientInfo.name} • {patientInfo.geneticVariant.split(' ')[0]}
-          </span>
+          <h3 className="text-sm font-bold text-[var(--text-heading)]">Sequential Agent Execution Chain</h3>
           {assignedSubject && (
             <span className="ml-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[var(--indigo)] text-[10px] font-mono font-bold">
               <Database className="w-3 h-3" /> Grounded in {assignedSubject.display_name}
@@ -138,18 +217,20 @@ export default function AgentPipeline({ patientInfo, timelineData, assignedSubje
         </div>
         {isAllComplete && (
           <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-bold">
-            <CheckCircle2 className="w-3.5 h-3.5" /> All 5 Agents Complete
+            <CheckCircle2 className="w-3.5 h-3.5" /> All Enabled Agents Executed
           </span>
         )}
       </div>
 
-      {/* Vertical Pipeline */}
+      {/* Vertical Agent Pipeline with ON/OFF Toggles */}
       <div className="pt-1">
         {AGENTS.map((agent, idx) => (
           <AgentCard
             key={agent.id}
             agent={agent}
             status={agentStates[agent.id]}
+            isEnabled={agentEnabled[agent.id]}
+            onToggle={() => toggleAgentEnabled(agent.id)}
             output={agentOutputs[agent.id]}
             thinkingLog={thinkingLogs[agent.id]}
             onRetry={runPipeline}
@@ -167,7 +248,7 @@ export default function AgentPipeline({ patientInfo, timelineData, assignedSubje
 }
 
 /* ─────────────────────────────────────────────
-   Collapsible Debug Panel (Step 6 Enriched)
+   Collapsible Debug Panel
    ───────────────────────────────────────────── */
 function DebugPanel({ agentDebug, assignedSubject }) {
   const [expanded, setExpanded] = useState({});
@@ -183,10 +264,9 @@ function DebugPanel({ agentDebug, assignedSubject }) {
           <Bug className="w-4 h-4 text-amber-600" />
           <h3 className="text-sm font-bold text-amber-900">Debug: Prompt & Data Provenance Inspector</h3>
         </div>
-        <span className="text-[10px] font-mono text-amber-600">Step 6 Active Verification</span>
+        <span className="text-[10px] font-mono text-amber-600">Active Verification</span>
       </div>
 
-      {/* Real Subject Grounding Line */}
       {subj && (
         <div className="p-2.5 rounded-xl bg-white border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
           <div className="flex items-center gap-2">
@@ -225,7 +305,7 @@ function DebugPanel({ agentDebug, assignedSubject }) {
                   <pre className="text-[11px] text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200 whitespace-pre-wrap overflow-x-auto max-h-[150px] overflow-y-auto">{dbg.systemPrompt}</pre>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono font-bold text-amber-700 uppercase block mb-1">User Prompt (Interpolated with Real Subject Seed):</span>
+                  <span className="text-[10px] font-mono font-bold text-amber-700 uppercase block mb-1">User Prompt (Interpolated):</span>
                   <pre className="text-[11px] text-gray-700 bg-amber-50 p-3 rounded-lg border border-amber-200 whitespace-pre-wrap overflow-x-auto max-h-[300px] overflow-y-auto">{dbg.userPrompt}</pre>
                 </div>
               </div>

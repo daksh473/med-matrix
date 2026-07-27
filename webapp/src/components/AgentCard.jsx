@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   CheckCircle2, Clock, Loader2, AlertTriangle, RotateCcw, Eye,
-  Dna, Heart, Globe, Pill, Bell
+  Dna, Heart, Globe, Pill, Bell, Power, MinusCircle
 } from 'lucide-react';
 
 const AGENT_CONFIG = {
@@ -15,6 +15,8 @@ const AGENT_CONFIG = {
 export default function AgentCard({
   agent,
   status,
+  isEnabled = true,
+  onToggle,
   output,
   thinkingLog,
   onRetry,
@@ -25,11 +27,13 @@ export default function AgentCard({
   const IconComponent = cfg.icon;
 
   return (
-    <div className="relative flex items-start gap-5">
+    <div className={`relative flex items-start gap-5 transition-opacity ${!isEnabled ? 'opacity-40' : ''}`}>
       {/* Timeline Node & Connector */}
       <div className="flex flex-col items-center self-stretch">
         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 z-10 ${
-          status === 'complete'
+          !isEnabled
+            ? 'bg-gray-200 text-gray-400 border border-gray-300'
+            : status === 'complete'
             ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200'
             : status === 'thinking'
             ? 'bg-[var(--indigo)] text-white shadow-md shadow-blue-200 animate-pulse'
@@ -37,7 +41,8 @@ export default function AgentCard({
             ? 'bg-rose-500 text-white shadow-md shadow-rose-200'
             : 'bg-[var(--bg-input)] text-[var(--text-faint)] border border-[var(--border-light)]'
         }`}>
-          {status === 'complete' ? <CheckCircle2 className="w-5 h-5" />
+          {!isEnabled ? <MinusCircle className="w-5 h-5" />
+           : status === 'complete' ? <CheckCircle2 className="w-5 h-5" />
            : status === 'thinking' ? <Loader2 className="w-5 h-5 animate-spin" />
            : status === 'error' ? <AlertTriangle className="w-5 h-5" />
            : <Clock className="w-5 h-5" />}
@@ -56,7 +61,7 @@ export default function AgentCard({
         <div className={`content-card transition-all duration-500 ${
           status === 'thinking' ? 'agent-thinking' : ''
         } ${status === 'error' ? 'border-rose-300 bg-rose-50/50' : ''} ${
-          status === 'waiting' ? 'opacity-50' : ''
+          status === 'waiting' ? 'opacity-80' : ''
         }`}>
           {/* Header */}
           <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-light)]">
@@ -77,34 +82,55 @@ export default function AgentCard({
               </div>
             </div>
 
-            {/* Status Badge */}
-            {status === 'complete' && (
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Complete
-              </span>
-            )}
-            {status === 'thinking' && (
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-600 text-[11px] font-semibold animate-pulse">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Thinking...
-              </span>
-            )}
-            {status === 'waiting' && (
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-400 text-[11px] font-mono">
-                <Clock className="w-3.5 h-3.5" /> Waiting
-              </span>
-            )}
-            {status === 'error' && (
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-500 text-[11px] font-semibold">
-                <AlertTriangle className="w-3.5 h-3.5" /> Failed
-              </span>
-            )}
+            {/* Status Badge & ON/OFF Toggle Switch */}
+            <div className="flex items-center gap-3">
+              {/* ON / OFF Toggle Switch (Requirement 4B) */}
+              <button
+                onClick={onToggle}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-mono font-bold transition-all ${
+                  isEnabled
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100'
+                    : 'bg-gray-100 border-gray-300 text-gray-500 hover:bg-gray-200'
+                }`}
+                title={isEnabled ? 'Agent Enabled (Click to disable)' : 'Agent Disabled (Click to enable)'}
+              >
+                <Power className="w-3 h-3" />
+                <span>{isEnabled ? 'ON' : 'OFF'}</span>
+              </button>
+
+              {isEnabled && status === 'complete' && (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-semibold">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Complete
+                </span>
+              )}
+              {isEnabled && status === 'thinking' && (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-600 text-[11px] font-semibold animate-pulse">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Running...
+                </span>
+              )}
+              {isEnabled && status === 'waiting' && (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-400 text-[11px] font-mono">
+                  <Clock className="w-3.5 h-3.5" /> Pending
+                </span>
+              )}
+              {!isEnabled && (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-400 text-[11px] font-mono">
+                  Disabled
+                </span>
+              )}
+              {isEnabled && status === 'error' && (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-500 text-[11px] font-semibold">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Failed
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Description */}
           <p className="text-xs text-[var(--text-secondary)] mb-3 leading-relaxed">{agent.description}</p>
 
           {/* Thinking Ticker */}
-          {status === 'thinking' && (
+          {isEnabled && status === 'thinking' && (
             <div className="p-3 rounded-xl bg-[var(--bg-card-alt)] border border-blue-100 space-y-2">
               <div className="flex items-center gap-2 text-xs text-[var(--indigo)] font-mono font-medium">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -117,7 +143,7 @@ export default function AgentCard({
           )}
 
           {/* Complete: Summary */}
-          {status === 'complete' && output && (
+          {isEnabled && status === 'complete' && output && (
             <div className="space-y-3">
               <div className="p-3.5 rounded-xl bg-[var(--bg-card-alt)] border border-[var(--border-light)] text-xs leading-relaxed text-[var(--text-secondary)]">
                 <span className="font-semibold text-[var(--text-heading)] block mb-1">Summary:</span>
@@ -166,7 +192,7 @@ export default function AgentCard({
           )}
 
           {/* Error */}
-          {status === 'error' && (
+          {isEnabled && status === 'error' && (
             <div className="space-y-3">
               <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-600">
                 Agent call failed. Click retry to re-trigger the pipeline.
