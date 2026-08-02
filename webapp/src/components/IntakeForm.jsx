@@ -217,10 +217,14 @@ export default function IntakeForm({ onSubmit, timelineData, onTimelineUpload })
             <div>
               <label className="block text-[11px] font-bold text-[var(--text-heading)] mb-1">CYP Enzyme Variant</label>
               <select name="geneticVariant" value={formData.geneticVariant} onChange={handleChange} className="input-field font-mono text-[var(--indigo)] font-semibold">
-                <option value="CYP2D6 Poor Metabolizer (CYP2D6 *4/*4)">CYP2D6 Poor Metabolizer (*4/*4)</option>
-                <option value="CYP2C19 Rapid Metabolizer (CYP2C19 *17/*17)">CYP2C19 Rapid Metabolizer (*17/*17)</option>
-                <option value="CYP2C9 Slow Metabolizer (CYP2C9 *3/*3)">CYP2C9 Slow Metabolizer (*3/*3)</option>
-                <option value="CYP2D6 Ultrarapid Metabolizer (CYP2D6 *1xN)">CYP2D6 Ultrarapid Metabolizer (*1xN)</option>
+                <option value="CYP2D6 Poor Metabolizer (CYP2D6 *4/*4)">CYP2D6 Poor Metabolizer (*4/*4) — CYP2D6_poor_metabolizer</option>
+                <option value="CYP2C19 Rapid Metabolizer (CYP2C19 *17/*17)">CYP2C19 Rapid Metabolizer (*17/*17) — CYP2C19_rapid_metabolizer</option>
+                <option value="HLA-B*57:01 Positive (Abacavir Risk)">HLA-B*57:01 Positive — HLA-B_5701_positive</option>
+                <option value="CYP2C9 Slow Metabolizer (CYP2C9 *3/*3)">CYP2C9 Slow Metabolizer (*3/*3) — CYP2C9_slow_metabolizer</option>
+                <option value="CYP2D6 Ultrarapid Metabolizer (CYP2D6 *1xN)">CYP2D6 Ultrarapid Metabolizer (*1xN) — CYP2D6_ultrarapid_metabolizer</option>
+                <option value="TPMT Poor Metabolizer (Azathioprine Risk)">TPMT Poor Metabolizer — TPMT_poor_metabolizer</option>
+                <option value="SLCO1B1 Decreased Function (Statin Risk)">SLCO1B1 Decreased Function — SLCO1B1_decreased_function</option>
+                <option value="Unmapped Marker (No CPIC Match Fallback)">Unmapped Marker (Fallback Test Case)</option>
                 <option value="Normal Metabolizer (Wildtype / Extensive)">Normal Metabolizer (Wildtype)</option>
               </select>
             </div>

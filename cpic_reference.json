@@ -1,0 +1,134 @@
+{
+  "_meta": {
+    "description": "Starter pharmacogenomic reference table for Med Matrix AI's PharmAI agent. Summarized from real, publicly published CPIC (Clinical Pharmacogenetics Implementation Consortium) guidelines for hackathon/demo grounding. Not exhaustive and not a substitute for the full CPIC guidelines (cpicpgx.org) or a licensed clinician's judgment.",
+    "sources": [
+      "CPIC Guideline for CYP2D6 and CYP2C19 Genotypes and Dosing of Tricyclic Antidepressants (2016 Update)",
+      "CPIC Guideline for CYP2D6, CYP2C19, CYP2B6, SLC6A4, and HTR2A genotypes and SSRI/SNRI dosing (2023)",
+      "CPIC Guideline for CYP2D6 and codeine therapy",
+      "CPIC Guideline for CYP2C19 and clopidogrel therapy",
+      "CPIC Guideline for TPMT/NUDT15 and thiopurines (azathioprine, 6-mercaptopurine, thioguanine)",
+      "CPIC Guideline for CYP2C9/VKORC1/CYP4F2 and warfarin dosing",
+      "CPIC Guideline for SLCO1B1 and simvastatin-induced myopathy",
+      "CPIC Guideline for HLA-B and abacavir hypersensitivity",
+      "CPIC Guideline for HLA-B and allopurinol-induced severe cutaneous reactions"
+    ]
+  },
+
+  "CYP2D6_poor_metabolizer": {
+    "gene": "CYP2D6",
+    "phenotype": "Poor Metabolizer",
+    "affected_drug_classes": ["tricyclic antidepressants", "codeine", "atomoxetine", "tamoxifen", "ondansetron/tropisetron"],
+    "guidance": "Reduced or absent CYP2D6 enzyme activity leads to higher-than-expected plasma concentrations for most CYP2D6 substrates, increasing risk of side effects. For codeine, conversion to active morphine is impaired, so analgesia may be inadequate. For tricyclic antidepressants, a lower starting dose is generally recommended, with therapeutic drug monitoring where possible.",
+    "source": "CPIC Guidelines for CYP2D6 (TCA, codeine, atomoxetine)"
+  },
+  "CYP2D6_intermediate_metabolizer": {
+    "gene": "CYP2D6",
+    "phenotype": "Intermediate Metabolizer",
+    "affected_drug_classes": ["tricyclic antidepressants", "codeine", "atomoxetine"],
+    "guidance": "Reduced enzyme activity relative to normal metabolizers. A dose reduction (commonly cited as around 25% for tricyclic antidepressants) may be considered, with monitoring for reduced efficacy or side effects.",
+    "source": "CPIC Guideline for CYP2D6 and CYP2C19 Genotypes and Dosing of TCAs (2016 Update)"
+  },
+  "CYP2D6_normal_metabolizer": {
+    "gene": "CYP2D6",
+    "phenotype": "Normal Metabolizer",
+    "affected_drug_classes": ["tricyclic antidepressants", "codeine", "atomoxetine", "tamoxifen"],
+    "guidance": "Expected/typical CYP2D6 enzyme activity. Standard starting doses of CYP2D6-metabolized drugs are appropriate, per routine clinical practice.",
+    "source": "CPIC Guideline for CYP2D6 and CYP2C19 Genotypes and Dosing of TCAs (2016 Update)"
+  },
+  "CYP2D6_ultrarapid_metabolizer": {
+    "gene": "CYP2D6",
+    "phenotype": "Ultrarapid Metabolizer",
+    "affected_drug_classes": ["tricyclic antidepressants", "codeine", "atomoxetine"],
+    "guidance": "Increased enzyme activity converts drugs to their metabolites faster than expected. For codeine, this raises risk of morphine toxicity even at standard doses. For tricyclic antidepressants, faster clearance may cause reduced efficacy at standard doses; an alternative drug not metabolized by CYP2D6 is often recommended.",
+    "source": "CPIC Guideline for CYP2D6 and codeine; CPIC TCA guideline (2016 Update)"
+  },
+
+  "CYP2C19_poor_metabolizer": {
+    "gene": "CYP2C19",
+    "phenotype": "Poor Metabolizer",
+    "affected_drug_classes": ["clopidogrel", "proton pump inhibitors", "SSRIs (e.g. escitalopram, sertraline)", "voriconazole"],
+    "guidance": "Reduced conversion of clopidogrel (a prodrug) to its active form lowers its antiplatelet effect, raising cardiovascular event risk after procedures like PCI — an alternative antiplatelet agent is often recommended. For SSRIs metabolized by CYP2C19, a lower starting dose may be warranted due to higher drug exposure.",
+    "source": "CPIC Guideline for CYP2C19 and clopidogrel; CPIC SSRI/SNRI guideline (2023)"
+  },
+  "CYP2C19_intermediate_metabolizer": {
+    "gene": "CYP2C19",
+    "phenotype": "Intermediate Metabolizer",
+    "affected_drug_classes": ["clopidogrel", "proton pump inhibitors", "SSRIs"],
+    "guidance": "Somewhat reduced clopidogrel activation; clinicians may consider alternative antiplatelet therapy or increased monitoring, particularly in high-risk cardiovascular settings.",
+    "source": "CPIC Guideline for CYP2C19 and clopidogrel"
+  },
+  "CYP2C19_rapid_metabolizer": {
+    "gene": "CYP2C19",
+    "phenotype": "Rapid Metabolizer",
+    "affected_drug_classes": ["clopidogrel", "proton pump inhibitors", "SSRIs"],
+    "guidance": "Increased enzyme activity can lead to lower plasma exposure of CYP2C19 substrates such as PPIs and some SSRIs, potentially reducing efficacy at standard doses.",
+    "source": "CPIC SSRI/SNRI guideline (2023)"
+  },
+  "CYP2C19_ultrarapid_metabolizer": {
+    "gene": "CYP2C19",
+    "phenotype": "Ultrarapid Metabolizer",
+    "affected_drug_classes": ["clopidogrel", "proton pump inhibitors", "SSRIs"],
+    "guidance": "Substantially increased enzyme activity. Standard PPI or SSRI doses may be subtherapeutic; monitoring for reduced efficacy is advised.",
+    "source": "CPIC SSRI/SNRI guideline (2023)"
+  },
+  "CYP2C19_normal_metabolizer": {
+    "gene": "CYP2C19",
+    "phenotype": "Normal Metabolizer",
+    "affected_drug_classes": ["clopidogrel", "proton pump inhibitors", "SSRIs"],
+    "guidance": "Expected enzyme activity; standard dosing of CYP2C19-metabolized drugs is appropriate.",
+    "source": "CPIC Guideline for CYP2C19 and clopidogrel"
+  },
+
+  "TPMT_poor_metabolizer": {
+    "gene": "TPMT",
+    "phenotype": "Poor/Deficient Activity",
+    "affected_drug_classes": ["azathioprine", "6-mercaptopurine", "thioguanine"],
+    "guidance": "Markedly reduced thiopurine methyltransferase activity leads to accumulation of active thioguanine nucleotides, sharply raising the risk of severe, potentially life-threatening myelosuppression. A substantial starting-dose reduction (guidelines often cite reducing to roughly 10% of standard dose, or using an alternative agent) with close blood-count monitoring is recommended.",
+    "source": "CPIC Guideline for TPMT/NUDT15 and Thiopurine Dosing"
+  },
+  "TPMT_intermediate_metabolizer": {
+    "gene": "TPMT",
+    "phenotype": "Intermediate Activity",
+    "affected_drug_classes": ["azathioprine", "6-mercaptopurine", "thioguanine"],
+    "guidance": "Reduced enzyme activity; a moderate starting-dose reduction is typically recommended with monitoring for myelosuppression.",
+    "source": "CPIC Guideline for TPMT/NUDT15 and Thiopurine Dosing"
+  },
+  "TPMT_normal_metabolizer": {
+    "gene": "TPMT",
+    "phenotype": "Normal Activity",
+    "affected_drug_classes": ["azathioprine", "6-mercaptopurine", "thioguanine"],
+    "guidance": "Standard thiopurine starting doses are appropriate, following routine monitoring practice.",
+    "source": "CPIC Guideline for TPMT/NUDT15 and Thiopurine Dosing"
+  },
+
+  "SLCO1B1_decreased_function": {
+    "gene": "SLCO1B1",
+    "phenotype": "Decreased/Poor Function",
+    "affected_drug_classes": ["simvastatin", "other statins"],
+    "guidance": "Reduced hepatic uptake transporter function raises plasma simvastatin levels, increasing myopathy risk. A lower simvastatin dose or an alternative statin less dependent on SLCO1B1 is generally recommended.",
+    "source": "CPIC Guideline for SLCO1B1 and Simvastatin-Induced Myopathy"
+  },
+
+  "CYP2C9_VKORC1_warfarin_sensitive": {
+    "gene": "CYP2C9/VKORC1",
+    "phenotype": "Increased Sensitivity",
+    "affected_drug_classes": ["warfarin"],
+    "guidance": "Reduced CYP2C9 clearance and/or a VKORC1 promoter variant increases warfarin sensitivity, raising bleeding risk at standard doses. CPIC and validated pharmacogenetic dosing algorithms recommend a lower starting dose with closer INR monitoring.",
+    "source": "CPIC Guideline for CYP2C9, VKORC1, CYP4F2 and Warfarin Dosing"
+  },
+
+  "HLA-B_5701_positive": {
+    "gene": "HLA-B*57:01",
+    "phenotype": "Positive",
+    "affected_drug_classes": ["abacavir"],
+    "guidance": "Strong association with abacavir hypersensitivity syndrome. CPIC recommends avoiding abacavir entirely in patients positive for this allele, regardless of other clinical factors.",
+    "source": "CPIC Guideline for HLA-B and Abacavir"
+  },
+  "HLA-B_5801_positive": {
+    "gene": "HLA-B*58:01",
+    "phenotype": "Positive",
+    "affected_drug_classes": ["allopurinol"],
+    "guidance": "Strong association with severe cutaneous adverse reactions (Stevens-Johnson syndrome/toxic epidermal necrolysis) to allopurinol. CPIC recommends avoiding allopurinol in positive patients and using an alternative urate-lowering therapy.",
+    "source": "CPIC Guideline for HLA-B and Allopurinol"
+  }
+}

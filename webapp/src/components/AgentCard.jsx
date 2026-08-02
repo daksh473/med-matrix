@@ -211,10 +211,23 @@ export default function AgentCard({
                 </div>
               )}
 
-              {/* Requirement 4: PharmAI Recommendation with Justified Confidence */}
+              {/* Requirement 4: PharmAI Recommendation with Justified Confidence & CPIC Badge */}
               {agent.id === 'pharmai' && (
                 <div className="space-y-2">
-                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
+                  {/* STEP 4 & STEP 5: CPIC Guidance Grounding Badge */}
+                  {output.cpic_grounding?.has_match && (
+                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] font-mono font-bold text-emerald-800 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                        <span>Grounded in CPIC guidance</span>
+                      </div>
+                      <span className="text-[10px] text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                        {output.cpic_grounding.primary_source || output.cpic_guideline_cited}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-center justify-between text-xs">
                     <div>
                       <span className="text-[10px] font-mono text-emerald-600 uppercase font-bold block">Recommended N-of-1 Regimen</span>
                       <span className="font-bold text-[var(--text-heading)] text-sm">{output.recommended_drug}</span>
