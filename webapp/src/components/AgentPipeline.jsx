@@ -297,6 +297,24 @@ function DebugPanel({ agentDebug, assignedSubject }) {
             <Database className="w-4 h-4 text-[var(--indigo)]" />
             <span className="font-bold text-slate-800">Assigned Subject:</span>
             <span className="text-[var(--indigo)] font-bold">{subj.display_name}</span>
+            <span className="text-slate-500">
+              ({subj.source === 'bidmc' ? 'BIDMC PhysioNet ICU SpO₂ Dataset' : subj.source === 'wesad' ? 'WESAD Stress ECG Dataset' : subj.source === 'ppg_dalia' ? 'PPG-DaLiA Dataset' : 'Fitbit Tracker Dataset'})
+            </span>
+          </div>
+          <div className="text-[10px] text-slate-600">
+            {subj.source === 'bidmc' ? (
+              <span>
+                Mean SpO₂: <strong className="text-cyan-600">{subj.spo2_mean}%</strong> | Std: <strong className="text-slate-800">±{subj.spo2_std}%</strong> | Noise: <strong className="text-amber-600">±{subj.spo2_noise_magnitude || 0.2}</strong> | Range: <strong className="text-slate-800">{subj.spo2_min}–{subj.spo2_max}%</strong>
+              </span>
+            ) : subj.source === 'wesad' ? (
+              <span>
+                Baseline HR: <strong className="text-slate-800">{subj.baseline_hr_mean || subj.heart_rate_mean} bpm</strong> | Real Stress Delta: <strong className="text-rose-600">+{subj.hr_stress_delta} bpm</strong>
+              </span>
+            ) : (
+              <span>
+                Baseline HR: <strong className="text-rose-500">{subj.heart_rate_mean} bpm</strong> | Steps: <strong className="text-amber-600">{subj.steps_mean}</strong>
+              </span>
+            )}
           </div>
         </div>
       )}
