@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   CheckCircle2, Clock, Loader2, AlertTriangle, RotateCcw, Eye,
-  Dna, Heart, Globe, Pill, Bell, Power, MinusCircle
+  Dna, Heart, Globe, Pill, Bell, Power, MinusCircle, ChevronDown, ChevronUp,
+  BrainCircuit, ShieldCheck, Sparkles, AlertCircle, FileCheck
 } from 'lucide-react';
 
 const AGENT_CONFIG = {
@@ -10,6 +11,7 @@ const AGENT_CONFIG = {
   synthai:  { icon: Globe, color: '#a78bfa', bg: 'bg-purple-50', text: 'text-purple-500' },
   pharmai:  { icon: Pill, color: '#10b981', bg: 'bg-emerald-50', text: 'text-emerald-600' },
   alertai:  { icon: Bell, color: '#f59e0b', bg: 'bg-amber-50', text: 'text-amber-500' },
+  critic:   { icon: ShieldCheck, color: '#0284c7', bg: 'bg-sky-50', text: 'text-sky-600' }
 };
 
 export default function AgentCard({
@@ -23,8 +25,14 @@ export default function AgentCard({
   onInspectPayload,
   isLast
 }) {
+  const [showReasoning, setShowReasoning] = useState(false);
+  const [showCriticReview, setShowCriticReview] = useState(false);
+
   const cfg = AGENT_CONFIG[agent.id] || AGENT_CONFIG.genolens;
   const IconComponent = cfg.icon;
+
+  const reasoningSteps = output?.reasoning_steps || [];
+  const critic = output?.critic_review || (agent.id === 'pharmai' ? output?.critic : null);
 
   return (
     <div className={`relative flex items-start gap-5 transition-opacity ${!isEnabled ? 'opacity-40' : ''}`}>
@@ -77,6 +85,11 @@ export default function AgentCard({
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--bg-input)] text-[var(--text-secondary)] font-mono border border-[var(--border-light)]">
                     {agent.badge}
                   </span>
+                  {output?.cpic_guideline_cited && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-[var(--indigo)] font-mono font-bold border border-blue-200">
+                      {output.cpic_guideline_cited}
+                    </span>
+                  )}
                 </div>
                 <h3 className="text-base font-bold text-[var(--text-heading)]">{agent.title}</h3>
               </div>
@@ -84,7 +97,6 @@ export default function AgentCard({
 
             {/* Status Badge & ON/OFF Toggle Switch */}
             <div className="flex items-center gap-3">
-              {/* ON / OFF Toggle Switch (Requirement 4B) */}
               <button
                 onClick={onToggle}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-mono font-bold transition-all ${
@@ -142,7 +154,7 @@ export default function AgentCard({
             </div>
           )}
 
-          {/* Complete: Summary */}
+          {/* Complete: Summary & Data Blocks */}
           {isEnabled && status === 'complete' && output && (
             <div className="space-y-3">
               <div className="p-3.5 rounded-xl bg-[var(--bg-card-alt)] border border-[var(--border-light)] text-xs leading-relaxed text-[var(--text-secondary)]">
@@ -150,6 +162,36 @@ export default function AgentCard({
                 {output.summary}
               </div>
 
+              {/* Requirement 2: Chain-of-Thought Expandable Section */}
+              {reasoningSteps.length > 0 && (
+                <div className="rounded-xl border border-blue-100 bg-blue-50/50 overflow-hidden">
+                  <button
+                    onClick={() => setShowReasoning(!showReasoning)}
+                    className="w-full flex items-center justify-between px-3.5 py-2 text-xs font-semibold text-[var(--indigo)] hover:bg-blue-100/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <BrainCircuit className="w-4 h-4 text-[var(--indigo)]" />
+                      <span>Clinical Reasoning Chain (Chain-of-Thought — {reasoningSteps.length} Steps)</span>
+                    </div>
+                    {showReasoning ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+
+                  {showReasoning && (
+                    <div className="p-3 pt-1 space-y-1.5 border-t border-blue-100 bg-white">
+                      {reasoningSteps.map((step, idx) => (
+                        <div key={idx} className="flex items-start gap-2 text-[11px] text-slate-700 leading-snug">
+                          <span className="w-4 h-4 rounded-full bg-blue-100 text-[var(--indigo)] font-bold font-mono text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">
+                            {idx + 1}
+                          </span>
+                          <span>{step.replace(/^Step \d+:\s*/i, '')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* GenoLens Risks */}
               {agent.id === 'genolens' && output.drug_interaction_risks && (
                 <div className="space-y-1">
                   <span className="text-[10px] font-mono font-bold text-rose-500 uppercase">Interaction Risks:</span>
@@ -159,6 +201,7 @@ export default function AgentCard({
                 </div>
               )}
 
+              {/* PulseIQ Anomalies */}
               {agent.id === 'pulseiq' && output.anomalies_detected && (
                 <div className="space-y-1">
                   <span className="text-[10px] font-mono font-bold text-amber-500 uppercase">Anomalies:</span>
@@ -168,15 +211,61 @@ export default function AgentCard({
                 </div>
               )}
 
+              {/* Requirement 4: PharmAI Recommendation with Justified Confidence */}
               {agent.id === 'pharmai' && (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="text-[10px] font-mono text-emerald-600 uppercase font-bold block">Recommended</span>
-                    <span className="font-bold text-[var(--text-heading)] text-sm">{output.recommended_drug}</span>
+                <div className="space-y-2">
+                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-[10px] font-mono text-emerald-600 uppercase font-bold block">Recommended N-of-1 Regimen</span>
+                      <span className="font-bold text-[var(--text-heading)] text-sm">{output.recommended_drug}</span>
+                      <span className="text-[11px] text-emerald-700 font-mono block">Dose: {output.recommended_dose}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-mono font-bold text-xs inline-block">
+                        Match Confidence: {output.confidence_level}
+                      </span>
+                    </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-mono font-bold text-xs">
-                    {output.confidence_level}
-                  </span>
+
+                  {/* Justified Confidence Rationale */}
+                  {output.confidence_rationale && (
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] space-y-1">
+                      <span className="font-bold text-slate-800 flex items-center gap-1.5 text-[10px] uppercase font-mono text-emerald-700">
+                        <FileCheck className="w-3.5 h-3.5" /> Justified Confidence Rationale:
+                      </span>
+                      <p className="text-slate-600 leading-relaxed font-mono">{output.confidence_rationale}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Requirement 3: Critic Pass (AI Self-Review) Expandable Section */}
+              {agent.id === 'pharmai' && critic && (
+                <div className="rounded-xl border border-sky-200 bg-sky-50/60 overflow-hidden">
+                  <button
+                    onClick={() => setShowCriticReview(!showCriticReview)}
+                    className="w-full flex items-center justify-between px-3.5 py-2 text-xs font-bold text-sky-800 hover:bg-sky-100/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-sky-600" />
+                      <span>AI Self-Review (Critic Pass Audit — Status: {critic.review_status || 'VERIFIED'})</span>
+                    </div>
+                    {showCriticReview ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+
+                  {showCriticReview && (
+                    <div className="p-3 space-y-2 text-xs border-t border-sky-200 bg-white">
+                      <p className="text-slate-700 font-mono text-[11px] leading-relaxed">{critic.critique_summary}</p>
+                      {critic.underweighted_risks?.length > 0 && (
+                        <div>
+                          <span className="text-[10px] font-mono font-bold text-sky-700 uppercase">Monitored Risk Audit:</span>
+                          <ul className="list-disc list-inside text-[11px] text-slate-600">
+                            {critic.underweighted_risks.map((r, i) => <li key={i}>{r}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

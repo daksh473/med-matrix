@@ -179,18 +179,33 @@ export default function FinalDashboard({ patientInfo, timelineData, assignedSubj
               </div>
             </div>
 
-            {/* Genomic Bypass Tag */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-[var(--indigo)] text-[11px] font-mono font-semibold">
-              <ShieldCheck className="w-4 h-4" />
-              Genomic Pathway Clearance: 100% Defect Bypass Verified
+            {/* Genomic Bypass & CPIC Grounding Tags */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-[var(--indigo)] text-[11px] font-mono font-semibold">
+                <ShieldCheck className="w-4 h-4 text-[var(--indigo)]" />
+                Genomic Pathway Clearance: 100% Defect Bypass Verified
+              </div>
+              {pharmai.cpic_guideline_cited && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-mono font-bold">
+                  <FileText className="w-3.5 h-3.5" /> Grounded in {pharmai.cpic_guideline_cited}
+                </div>
+              )}
             </div>
 
             {/* Reasoning */}
-            <div className="pt-3 border-t border-[var(--border-light)]">
-              <h4 className="text-xs font-bold text-[var(--text-heading)] mb-2 uppercase tracking-wide">Clinical Rationale</h4>
+            <div className="pt-3 border-t border-[var(--border-light)] space-y-2">
+              <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wide">Clinical Rationale</h4>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed bg-white p-3.5 rounded-xl border border-[var(--border-light)] font-medium">
                 {pharmai.reasoning}
               </p>
+
+              {/* Justified Confidence Rationale */}
+              {pharmai.confidence_rationale && (
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-700">
+                  <span className="font-bold text-slate-900 block mb-0.5 text-[10px] uppercase text-emerald-700">Justified Confidence Rationale:</span>
+                  {pharmai.confidence_rationale}
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,0 +1,40 @@
+{
+  "guidelines": {
+    "CYP2D6 Poor Metabolizer": {
+      "cpic_guideline_id": "CPIC-CYP2D6-SUBSTRATES-v3",
+      "affected_drugs": ["Metoprolol", "Carvedilol", "Codeine", "Tramadol", "Tamoxifen", "Venlafaxine", "Aripiprazole"],
+      "dosing_recommendation": "Avoid codeine/tramadol (lack of active metabolite conversion) and CYP2D6-metabolized beta-blockers like metoprolol (500% AUC increase). Select non-CYP2D6 alternatives such as Amlodipine (CYP3A4) or Lisinopril (renal elimination).",
+      "evidence_level": "A (Actionable)"
+    },
+    "CYP2D6 Ultrarapid Metabolizer": {
+      "cpic_guideline_id": "CPIC-CYP2D6-CODEINE-TRAMADOL",
+      "affected_drugs": ["Codeine", "Tramadol", "Tamoxifen", "Oxycodone"],
+      "dosing_recommendation": "Avoid codeine and tramadol due to potential for rapid conversion to morphine/active metabolite causing severe toxicity or serotonin syndrome. Use non-CYP2D6 opioid or non-opioid analgesics.",
+      "evidence_level": "A (High Risk Toxicity)"
+    },
+    "CYP2C19 Rapid Metabolizer": {
+      "cpic_guideline_id": "CPIC-CYP2C19-CLOPIDOGREL-v2",
+      "affected_drugs": ["Clopidogrel", "Omeprazole", "Voriconazole", "Escitalopram"],
+      "dosing_recommendation": "Ultra-rapid prodrug activation with Clopidogrel increases bleeding risk. CPIC recommends direct-acting P2Y12 inhibitors (Ticagrelor 90mg BID or Prasugrel 10mg QD) that do not require CYP2C19 bioactivation.",
+      "evidence_level": "A (Actionable)"
+    },
+    "CYP2C19 Poor Metabolizer": {
+      "cpic_guideline_id": "CPIC-CYP2C19-CLOPIDOGREL-POOR",
+      "affected_drugs": ["Clopidogrel", "Voriconazole", "Citalopram"],
+      "dosing_recommendation": "Subtherapeutic bioactivation of clopidogrel resulting in high risk of major adverse cardiovascular events (MACE) / stent thrombosis. Switch to Ticagrelor or Prasugrel.",
+      "evidence_level": "A (Strong Recommendation)"
+    },
+    "CYP2C9 Slow Metabolizer": {
+      "cpic_guideline_id": "CPIC-CYP2C9-WARFARIN-CELECOXIB",
+      "affected_drugs": ["Warfarin", "Celecoxib", "Phenytoin", "Losartan"],
+      "dosing_recommendation": "Impaired clearance leads to 200-400% longer half-life for Warfarin and Celecoxib. Reduce initial Warfarin dose by 50-80% or switch to Direct Oral Anticoagulants (Apixaban or Rivaroxaban) eliminating INR instability.",
+      "evidence_level": "A (Actionable)"
+    },
+    "Normal Metabolizer": {
+      "cpic_guideline_id": "CPIC-WILDTYPE-STANDARD",
+      "affected_drugs": [],
+      "dosing_recommendation": "No pharmacogenomic clearance impairment identified. Initiate standard guideline-directed first-line medical therapy with routine clinical monitoring.",
+      "evidence_level": "Standard Clinical Practice"
+    }
+  }
+}
