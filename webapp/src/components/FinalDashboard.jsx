@@ -71,7 +71,7 @@ export default function FinalDashboard({ patientInfo, timelineData, assignedSubj
       }
 
       const todayDate = new Date().toISOString().split('T')[0];
-      const fileName = `MedMatrix_Report_${patientInfo.name.replace(/\s+/g, '_')}_${todayDate}.pdf`;
+      const fileName = `MedMatrix_CaseReport_${patientInfo.name.replace(/\s+/g, '_')}_${todayDate}.pdf`;
       pdf.save(fileName);
     } catch (err) {
       console.error('PDF Generation failed:', err);
